@@ -67,6 +67,107 @@
     <p class="text-[#5a7a5c] leading-relaxed">We guarantee your lettuce arrives fresh, crisp, and of the highest quality. If you're not satisfied with the freshness of your order, let us know within 24 hours and we'll make it right — whether that's a replacement or a refund. Your satisfaction is the foundation of our farm.</p>
   </div>
 
+  <!-- Products Made Possible By Our Lettuces -->
+  <div class="bg-white rounded-3xl border border-[rgba(27,94,32,0.08)] p-8 sm:p-10 mb-8 shadow-sm overflow-hidden">
+    <div class="mb-8">
+      <span class="inline-flex items-center gap-1.5 text-[11px] font-black tracking-[0.14em] uppercase text-[#17611f] bg-[#e8f5e9] rounded-full px-4 py-1.5">🍃 Customer Creations</span>
+      <h2 class="text-[26px] sm:text-[30px] font-black leading-[1.1] tracking-[-0.5px] mt-4 mb-3">Products Made Possible<br class="hidden sm:block"/> by Our Lettuces</h2>
+      <p class="text-sm sm:text-[15px] text-[#5a7a5c] leading-relaxed max-w-2xl">From samgyup nights to healthy salads, here’s how our community uses Luntiang H.A.P.A.G. hydroponic lettuce. 100% fresh, chemical-free, and harvested only after you order.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- 1 Samgyup Wrap -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="{{ asset('images/creations/samgyup-lettuce-wrap.jpg') }}" alt="Samgyup lettuce wrap with kimchi" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">K-BBQ Favorite</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Samgyup Lettuce Wraps</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">Crisp Batavia & Romaine cups holding grilled pork, kimchi, and garlic — the perfect bite that made our lettuce a samgyup staple.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Romaine & Batavia</span></p>
+        </div>
+      </article>
+
+      <!-- 2 Caesar Salad -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden bg-white flex items-center justify-center p-2">
+          <img src="{{ asset('images/creations/caesar-parmesan-salad.jpg') }}" alt="Caesar salad with parmesan croutons" class="h-full w-full object-contain transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">Classic Fresh</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Caesar Parmesan Salad</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">Olmetie & Estrosa lettuce tossed with parmesan croutons and creamy dressing — crisp, clean flavor thanks to soil-free hydroponics.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Olmetie & Lalique</span></p>
+        </div>
+      </article>
+
+      <!-- 3 Sisig Lettuce Cups -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="{{ asset('images/creations/sisig-lettuce-cups.jpg') }}" alt="Sisig in lettuce cups" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">Filipino Fusion</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Savory Lettuce Cups</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">Bianca butterhead lettuce as edible cups for sizzling sisig & mushroom sisig — low-carb, high crunch, zero soil residue.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Bianca & Dabi</span></p>
+        </div>
+      </article>
+
+      <!-- 4 Crispy Tacos -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="{{ asset('images/creations/crispy-lettuce-tacos.jpg') }}" alt="Crispy breaded tacos with lettuce and cheese" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">Party Handhelds</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Crispy Lettuce Tacos</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">Golden breaded shells stuffed with lettuce, cheese, and fresh veggies — proof that hydroponic lettuce stays crunchy even in fried creations.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Batavia & Red Lettuce</span></p>
+        </div>
+      </article>
+
+      <!-- 5 Fresh Wraps -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="{{ asset('images/creations/fresh-lettuce-wraps.jpg') }}" alt="Fresh lettuce wraps platter" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">Healthy Bites</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Garden Fresh Wraps</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">Lalique & Estrosa lettuce wrapping seasoned mushrooms and greens — elegant, fresh, and ready in 1-3 hours after you order.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Lalique Family Pack</span></p>
+        </div>
+      </article>
+
+      <!-- 6 Club Sandwich -->
+      <article class="group relative rounded-[20px] overflow-hidden bg-[#f4faf5] border border-[rgba(27,94,32,0.08)] hover:shadow-[0_12px_32px_rgba(23,97,31,0.12)] hover:-translate-y-1 transition-all duration-300">
+        <div class="relative aspect-[4/3] overflow-hidden">
+          <img src="{{ asset('images/creations/club-sandwich-lettuce.jpg') }}" alt="Club sandwiches with lettuce and calamansi juice" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105">
+          <span class="absolute left-3 top-3 inline-flex rounded-full bg-white/90 backdrop-blur px-2.5 py-1 text-[10px] font-black tracking-wide text-[#17611f] shadow-sm">Baon & Catering</span>
+        </div>
+        <div class="p-4">
+          <h3 class="font-black text-[15px] text-[#1a2e1c]">Club Sandwiches & Baon</h3>
+          <p class="mt-1 text-[12px] leading-relaxed text-[#5a7a5c]">From school baon to catering trays, our lettuce keeps sandwiches crunchy — paired with our signature calamansi dalandan juice.</p>
+          <p class="mt-3 text-[10px] font-bold uppercase tracking-widest text-[#9e9e9e]">Perfect with: <span class="text-[#17611f]">Wholesale Trays 50-cups</span></p>
+        </div>
+      </article>
+    </div>
+
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-[#f4faf5] border border-dashed border-[rgba(27,94,32,0.18)] p-5">
+      <div class="flex-1">
+        <p class="text-sm font-black text-[#1a2e1c]">Made something amazing with our lettuce?</p>
+        <p class="text-xs text-[#5a7a5c] mt-1">Tag us on Facebook or submit via Feedback — we’d love to feature your creation here!</p>
+      </div>
+      <a href="{{ route('products.index') }}" class="inline-flex items-center gap-2 rounded-full bg-[#17611f] px-5 py-2.5 text-xs font-black text-white shadow-sm hover:bg-[#14521a] hover:shadow-md transition-all">
+        Shop Lettuce for Your Recipe
+        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none"><path d="M7 4.5L13.5 10L7 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+
   <!-- Contact Info -->
   <div class="bg-white rounded-3xl border border-[rgba(27,94,32,0.08)] p-10 text-center shadow-sm">
     <h2 class="text-2xl font-black mb-3">📍 Visit Us or Get in Touch</h2>

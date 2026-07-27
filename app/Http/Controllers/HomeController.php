@@ -42,11 +42,19 @@ class HomeController extends Controller
         $activeCoupons = [];
         $claimedIds = [];
         try {
-            $activeCoupons = Promotion::where('is_active', 1)->where(function($q){
+            $promotionQuery = Promotion::where('is_active', 1)->where(function($q){
                 $q->whereNull('expires_at')->orWhere('expires_at', '>=', now()->toDateString());
-            })->orderByDesc('created_at')->limit(3)->get();
+            })->orderByDesc('created_at')->limit(10);
+
+            $allPromos = $promotionQuery->get();
+
             if ($isLoggedIn) {
-                $claimedIds = ClaimedCoupon::where('user_id', $request->session()->get('user_id'))->pluck('promotion_id')->toArray();
+                $userId = $request->session()->get('user_id');
+                $claimedIds = ClaimedCoupon::where('user_id', $userId)->pluck('promotion_id')->toArray();
+                // Vanish once claimed: exclude claimed coupons from display
+                $activeCoupons = $allPromos->whereNotIn('id', $claimedIds)->take(3)->values();
+            } else {
+                $activeCoupons = $allPromos->take(3);
             }
         } catch (\Exception $e) {
             $activeCoupons = collect([]);

@@ -9,46 +9,27 @@
       <span class="mb-3 inline-flex w-fit items-center gap-1.5 rounded-full bg-[#17611f]/85 px-3 py-1 text-xs font-black">100% Hydroponic · Harvest-on-Demand</span>
       <h1 class="max-w-[520px] text-[26px] sm:text-[32px] font-black leading-[1.2] tracking-[-.5px]">Harvested Only After You Order</h1>
       <p class="mt-3 max-w-[460px] text-sm sm:text-base text-white/90">Farm-to-table freshness — lettuce stays growing until your order is confirmed. Same-day harvest, pack, and delivery.</p>
-      <div class="mt-5 flex flex-wrap gap-3">
-        <a href="{{ route('products.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-white text-[#17611f] px-5 py-2.5 text-sm font-black hover:bg-[#e8f5e9] transition-colors">🛍️ Shop Now</a>
-        <a href="{{ route('about') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/15 text-white px-5 py-2.5 text-sm font-bold hover:bg-white/25 transition-colors">Learn More</a>
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        {{-- Premium Shop Now button - no emoji, SVG arrow --}}
+        <a href="{{ route('products.index') }}" class="group relative inline-flex items-center rounded-full bg-white pl-7 pr-1.5 py-1.5 text-[14px] font-black tracking-[-0.2px] text-[#0e3f14] shadow-[0_10px_30px_rgba(0,0,0,0.22),0_1px_0_rgba(255,255,255,0.9)_inset] ring-1 ring-white/10 hover:bg-[#f6fef6] hover:shadow-[0_16px_40px_rgba(0,0,0,0.32)] hover:-translate-y-[1px] active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out">
+          <span>Shop Now</span>
+          <span class="ml-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#17611f] text-white shadow-[0_4px_12px_rgba(23,97,31,0.35)] transition-all duration-300 group-hover:bg-[#14521a] group-hover:translate-x-0.5 group-hover:shadow-[0_6px_16px_rgba(23,97,31,0.45)]">
+            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M7 4.5L13.5 10L7 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </a>
+
+        {{-- Secondary Learn More - glass style, no emoji --}}
+        <a href="{{ route('about') }}" class="group inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/12 backdrop-blur-md px-6 py-3 text-[14px] font-bold text-white shadow-[0_2px_12px_rgba(0,0,0,0.12)] hover:bg-white/20 hover:border-white/40 hover:shadow-[0_4px_20px_rgba(0,0,0,0.18)] hover:-translate-y-[0.5px] active:translate-y-0 transition-all duration-300">
+          <span>Learn More</span>
+          <svg class="h-4 w-4 opacity-80 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M5 10H15M15 10L10.5 5.5M15 10L10.5 14.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </div>
     </div>
   </div>
-
-  @if($activeCoupons->isNotEmpty())
-  <div class="mb-10">
-    <div class="flex items-center justify-between mb-4"><h2 class="text-xl font-black">🎟️ Claimable Coupons</h2></div>
-    <div class="grid gap-4 sm:grid-cols-3" id="couponSection">
-      @foreach($activeCoupons as $c)
-        @php
-          $alreadyClaimed = in_array($c->id, $claimedIds);
-          $discountLabel = $c->discount_type === 'percentage' ? $c->discount_value.'% Off' : '₱'.number_format($c->discount_value,2).' Off';
-          $expiry = $c->expires_at ? date('M j, Y', strtotime($c->expires_at)) : 'No expiry';
-        @endphp
-        <div class="rounded-2xl border p-5 bg-white hover:shadow-md transition-all">
-          <div class="flex items-start justify-between mb-3">
-            <div><p class="text-xs font-black uppercase text-[#17611f]">{{ $c->code }}</p><h3 class="mt-1 text-lg font-black text-[#1a2e1c]">{{ $discountLabel }}</h3></div>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#e8f5e9] text-[#17611f]">{{ $expiry }}</span>
-          </div>
-          <p class="text-sm text-[#5a7a5c] mb-1">{{ $c->description }}</p>
-          @if($c->min_order > 0)<p class="text-xs text-[#9e9e9e] mb-3">Min. purchase: ₱{{ number_format($c->min_order,2) }}</p>@endif
-          @if($isLoggedIn)
-            <form method="POST" action="{{ route('coupons.claim') }}">
-              @csrf
-              <input type="hidden" name="promotion_id" value="{{ $c->id }}">
-              <button type="submit" class="w-full mt-2 py-2 rounded-xl text-sm font-bold transition-colors {{ $alreadyClaimed?'bg-gray-100 text-[#9e9e9e] cursor-not-allowed':'bg-[#17611f] text-white hover:bg-[#14521a]' }}" {{ $alreadyClaimed?'disabled':'' }}>
-                {{ $alreadyClaimed?'✓ Claimed':'🎟️ Claim Coupon' }}
-              </button>
-            </form>
-          @else
-            <a href="{{ route('login') }}" class="block w-full mt-2 py-2 rounded-xl bg-[#17611f] text-white text-sm font-bold text-center hover:bg-[#14521a]">🎟️ Claim Coupon</a>
-          @endif
-        </div>
-      @endforeach
-    </div>
-  </div>
-  @endif
 
   <section>
     <div class="flex items-center justify-between mb-4">
@@ -84,6 +65,53 @@
       @endforeach
     </div>
   </section>
+
+  {{-- Coupons now at END of products and vanish once claimed --}}
+  @if($activeCoupons->isNotEmpty())
+  <div id="couponSectionWrapper" class="mt-10">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-black">🎟️ Claimable Coupons</h2>
+      <p class="text-xs text-[#5a7a5c]">Claim now — disappears after claiming</p>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="couponSection">
+      @foreach($activeCoupons as $c)
+        @php
+          if (!empty($c->is_free_delivery) && (float)$c->discount_value == 0) {
+            $discountLabel = 'FREE Delivery';
+          } elseif (($c->discount_type ?? '') === 'percentage') {
+            $discountLabel = rtrim(rtrim(number_format((float)$c->discount_value, 2), '0'), '.') . '% Off';
+          } else {
+            $discountLabel = '₱'.number_format((float)$c->discount_value,2).' Off';
+          }
+          $expiry = $c->expires_at ? date('M j, Y', strtotime($c->expires_at)) : 'No expiry';
+        @endphp
+        <div id="coupon-card-{{ $c->id }}" class="coupon-card rounded-2xl border p-5 bg-white hover:shadow-md transition-all duration-300">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="text-xs font-black uppercase tracking-wider text-[#17611f]">{{ $c->code }}</p>
+              <h3 class="mt-1 text-lg font-black text-[#1a2e1c]">{{ $discountLabel }}</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#e8f5e9] text-[#17611f]">{{ $expiry }}</span>
+          </div>
+          <p class="text-sm text-[#5a7a5c] mb-1">{{ $c->description }}</p>
+          @if(($c->min_order ?? 0) > 0)<p class="text-xs text-[#9e9e9e] mb-3">Min. purchase: ₱{{ number_format((float)$c->min_order,2) }}</p>@endif
+          @if($isLoggedIn)
+            <form method="POST" action="{{ route('coupons.claim') }}" class="coupon-claim-form" data-coupon-id="{{ $c->id }}">
+              @csrf
+              <input type="hidden" name="promotion_id" value="{{ $c->id }}">
+              <button type="submit" class="claim-btn w-full mt-2 py-2.5 rounded-xl text-sm font-bold bg-[#17611f] text-white hover:bg-[#14521a] active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
+                🎟️ Claim Coupon
+              </button>
+            </form>
+          @else
+            <a href="{{ route('login') }}" class="block w-full mt-2 py-2.5 rounded-xl bg-[#17611f] text-white text-sm font-bold text-center hover:bg-[#14521a] transition-colors">🎟️ Claim Coupon</a>
+          @endif
+        </div>
+      @endforeach
+    </div>
+  </div>
+  @endif
+
 </section>
 
 <section class="bg-white border-y border-[rgba(27,94,32,0.06)] py-10 mt-10">
@@ -121,5 +149,55 @@
 function showToast(msg,ok){let t=document.getElementById('cartToast');if(!t){t=document.createElement('div');t.id='cartToast';t.className='fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 translate-x-[120%] opacity-0 pointer-events-none';document.body.appendChild(t);}t.textContent=msg;t.className='fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 '+(ok?'bg-[#e8f5e9] text-[#17611f] border border-[#c8e6c9]':'bg-red-50 text-red-700 border border-red-100');t.classList.remove('translate-x-[120%]','opacity-0');t.classList.add('translate-x-0','opacity-100');clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.add('translate-x-[120%]','opacity-0');},3000);}
 function updateCartCount(count){let b=document.querySelector('a[href*="cart"] span');if(count>0){if(b){b.textContent=count}else{let a=document.querySelector('a[href*="cart"]');if(a){let s=document.createElement('span');s.className='absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#17611f] text-white text-[10px] font-bold flex items-center justify-center';s.textContent=count;a.appendChild(s)}}}else{if(b)b.remove()}}
 async function addToCart(id,qty){qty=qty||1;try{let r=await fetch('{{ route('cart.ajax') }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({action:'add',id:id,qty:qty})});let d=await r.json();showToast(d.message,d.success);if(d.success)updateCartCount(d.count)}catch(e){showToast('Network error',false)}}
+
+// Coupon claim – vanish after claimed with animation
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.coupon-claim-form').forEach(form=>{
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const couponId = form.dataset.couponId;
+      const btn = form.querySelector('.claim-btn');
+      const card = document.getElementById('coupon-card-'+couponId);
+      if(!btn || !card) return;
+      const origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Claiming...';
+      try {
+        const fd = new FormData(form);
+        const res = await fetch(form.action, {
+          method:'POST',
+          headers:{ 'X-CSRF-TOKEN':'{{ csrf_token() }}', 'X-Requested-With':'XMLHttpRequest', 'Accept':'application/json' },
+          body: fd
+        });
+        // If server returns JSON, parse it; otherwise treat 200/302 as success
+        let success = res.ok;
+        let data = null;
+        try { data = await res.clone().json(); success = data.success ?? success; } catch {}
+        if (success || res.status===302 || res.redirected) {
+          showToast('🎟️ Coupon claimed!', true);
+          card.style.transition = 'all 0.45s cubic-bezier(0.4,0,0.2,1)';
+          card.style.transform = 'scale(0.92) translateY(10px)';
+          card.style.opacity = '0';
+          setTimeout(()=>{
+            card.remove();
+            const remaining = document.querySelectorAll('.coupon-card').length;
+            if (remaining===0){
+              const wrapper = document.getElementById('couponSectionWrapper');
+              if (wrapper){ wrapper.style.transition='all 0.4s'; wrapper.style.opacity='0'; wrapper.style.transform='translateY(-10px)'; setTimeout(()=>wrapper.remove(),400); }
+            }
+          }, 420);
+        } else {
+          let msg = data?.message || 'Failed to claim coupon';
+          showToast(msg, false);
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      } catch(err){
+        // Fallback: submit normally and let page reload (coupon will be filtered out on reload)
+        form.submit();
+      }
+    });
+  });
+});
 </script>
 @endsection

@@ -80,19 +80,37 @@ Route::get('/feedback.php', [SupportController::class, 'feedback']);
 Route::post('/feedback', [SupportController::class, 'feedbackStore'])->name('feedback.submit');
 Route::post('/feedback.php', [SupportController::class, 'feedbackStore']);
 
-// Claim coupon
+// Claim coupon – now supports AJAX for instant vanish + regular redirect fallback
 Route::post('/coupons/claim', function(\Illuminate\Http\Request $request){
-    if (!session()->has('user_id')) return redirect()->route('login');
+    if (!session()->has('user_id')) {
+        if ($request->expectsJson() || $request->wantsJson() || $request->header('X-Requested-With')==='XMLHttpRequest') {
+            return response()->json(['success'=>false,'message'=>'Please login first'], 401);
+        }
+        return redirect()->route('login');
+    }
     $promotionId = (int)$request->input('promotion_id');
     $userId = session()->get('user_id');
     $promotion = Promotion::where('id', $promotionId)
         ->where('is_active', 1)
         ->where(function($q){ $q->whereNull('expires_at')->orWhere('expires_at', '>=', now()->toDateString()); })
         ->first();
-    if (!$promotion) return back()->with('error', 'Coupon is not available.');
+
+    $isJson = $request->expectsJson() || $request->wantsJson() || $request->ajax() || $request->header('Accept')==='application/json';
+
+    if (!$promotion) {
+        $msg = 'Coupon is not available.';
+        return $isJson ? response()->json(['success'=>false,'message'=>$msg], 404) : back()->with('error', $msg);
+    }
     $exists = ClaimedCoupon::where('user_id',$userId)->where('promotion_id',$promotionId)->exists();
-    if ($exists) return back()->with('error', 'You already claimed this coupon.');
+    if ($exists) {
+        $msg = 'You already claimed this coupon.';
+        return $isJson ? response()->json(['success'=>false,'message'=>$msg], 409) : back()->with('error', $msg);
+    }
     ClaimedCoupon::create(['user_id'=>$userId,'promotion_id'=>$promotionId]);
+
+    if ($isJson) {
+        return response()->json(['success'=>true,'message'=>'Coupon claimed! It will now vanish from home.','promotion_id'=>$promotionId]);
+    }
     return back()->with('success','Coupon claimed');
 })->name('coupons.claim')->middleware('customer.auth');
 

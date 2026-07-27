@@ -67,7 +67,7 @@ class ReportController extends Controller
             ->limit(5)
             ->get();
 
-        // Daily sales for chart: 7 days starting from selected date
+        // Daily sales for chart: 7 days ending selected date (original)
         $chartStart = date('Y-m-d', strtotime('-6 days', $ts));
         $chartEnd = $selectedDate;
         $dailyData = DB::table('orders')
@@ -78,10 +78,116 @@ class ReportController extends Controller
             ->orderBy('d')
             ->get();
 
+        // Enhanced: 30-day daily revenue & orders
+        $chart30Start = date('Y-m-d', strtotime('-29 days', $ts));
+        $daily30Raw = DB::table('orders')
+            ->select(DB::raw('DATE(created_at) as d'), DB::raw('COALESCE(SUM(total),0) as rev'), DB::raw('COUNT(*) as cnt'))
+            ->whereBetween(DB::raw('DATE(created_at)'), [$chart30Start, $chartEnd])
+            ->where('status', '!=', 'cancelled')
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('d')
+            ->get()
+            ->keyBy('d');
+
+        $daily30Filled = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-$i days", $ts));
+            $row = $daily30Raw[$d] ?? null;
+            $daily30Filled[] = [
+                'd' => $d,
+                'label' => date('M j', strtotime($d)),
+                'rev' => $row ? (float)$row->rev : 0,
+                'cnt' => $row ? (int)$row->cnt : 0,
+            ];
+        }
+
+        // 12-month monthly revenue
+        $monthly12Raw = DB::table('orders')
+            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as ym'), DB::raw('COALESCE(SUM(total),0) as rev'), DB::raw('COUNT(*) as cnt'))
+            ->where('created_at', '>=', date('Y-m-01', strtotime('-11 months', $ts)))
+            ->where('status', '!=', 'cancelled')
+            ->groupBy(DB::raw('DATE_FORMAT(created_at, "%Y-%m")'))
+            ->orderBy('ym')
+            ->get()
+            ->keyBy('ym');
+
+        $monthly12Filled = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $ym = date('Y-m', strtotime("-$i months", $ts));
+            $row = $monthly12Raw[$ym] ?? null;
+            $monthly12Filled[] = [
+                'ym' => $ym,
+                'label' => date('M Y', strtotime($ym . '-01')),
+                'short' => date('M', strtotime($ym . '-01')),
+                'rev' => $row ? (float)$row->rev : 0,
+                'cnt' => $row ? (int)$row->cnt : 0,
+            ];
+        }
+
+        // Order status breakdown (all time or selected month)
+        $statusBreakdown = DB::table('orders')
+            ->select('status', DB::raw('COUNT(*) as cnt'), DB::raw('COALESCE(SUM(total),0) as rev'))
+            ->where('status', '!=', 'cancelled')
+            ->groupBy('status')
+            ->orderByDesc('cnt')
+            ->get();
+
+        // Customer growth last 30 days
+        $cust30Raw = DB::table('users')
+            ->select(DB::raw('DATE(created_at) as d'), DB::raw('COUNT(*) as cnt'))
+            ->whereBetween(DB::raw('DATE(created_at)'), [$chart30Start, $chartEnd])
+            ->groupBy(DB::raw('DATE(created_at)'))
+            ->orderBy('d')
+            ->get()
+            ->keyBy('d');
+
+        $cust30Filled = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-$i days", $ts));
+            $row = $cust30Raw[$d] ?? null;
+            $cust30Filled[] = [
+                'd' => $d,
+                'label' => date('M j', strtotime($d)),
+                'cnt' => $row ? (int)$row->cnt : 0,
+            ];
+        }
+
+        // Category sales (if categories exist)
+        try {
+            $categorySales = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->join('products', 'order_items.product_id', '=', 'products.id')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->select('categories.name', DB::raw('SUM(order_items.quantity) as qty'), DB::raw('SUM(order_items.quantity * order_items.price) as rev'))
+                ->where('orders.status', '!=', 'cancelled')
+                ->groupBy('categories.name')
+                ->orderByDesc('rev')
+                ->limit(6)
+                ->get();
+        } catch (\Exception $e) {
+            $categorySales = collect();
+        }
+
+        // Fill missing daily 7 for chart consistency
+        $daily7Filled = [];
+        $dailyMap = $dailyData->keyBy('d');
+        for ($i = 6; $i >= 0; $i--) {
+            $d = date('Y-m-d', strtotime("-$i days", $ts));
+            $row = $dailyMap[$d] ?? null;
+            $daily7Filled[] = [
+                'd' => $d,
+                'label' => date('D M j', strtotime($d)),
+                'short' => date('M j', strtotime($d)),
+                'rev' => $row ? (float)$row->rev : 0,
+                'cnt' => $row ? (int)$row->cnt : 0,
+            ];
+        }
+
         return view('admin.reports.index', compact(
             'selectedDate', 'ts', 'weekStart', 'weekEnd', 'daySales', 'dayOrders',
             'weekSales', 'monthSales', 'totalOrders', 'avgOrder', 'deliveryCount',
-            'pickupCount', 'newCust', 'totalCust', 'bestSellers', 'chartStart', 'chartEnd', 'dailyData'
+            'pickupCount', 'newCust', 'totalCust', 'bestSellers', 'chartStart', 'chartEnd', 'dailyData',
+            'daily7Filled', 'daily30Filled', 'monthly12Filled', 'statusBreakdown', 'cust30Filled', 'categorySales'
         ));
     }
 }
