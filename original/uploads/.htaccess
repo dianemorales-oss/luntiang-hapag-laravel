@@ -1,0 +1,17 @@
+# Uploaded customer files (ticket attachments, proof of purchase, damage
+# photos) are only ever images or PDFs — never execute anything here,
+# and don't allow directory listing.
+php_flag engine off
+Options -Indexes
+
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(php|phtml|php\d)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(php|phtml|php\d)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>

@@ -1,0 +1,154 @@
+<?php
+/**
+ * includes/chatbot-knowledge.php
+ * Knowledge base for the Luntiang H.A.P.A.G. AI Assistant.
+ * Hydroponic Harvest-on-Demand Lettuce Farm.
+ */
+return [
+    'synonyms' => [
+        'romaine' => 'romaine lettuce', 'batavia' => 'batavia lettuce',
+        'bianca' => 'bianca lettuce', 'dabi' => 'dabi lettuce',
+        'estrosa' => 'estrosa lettuce', 'olmetie' => 'olmetie lettuce',
+        'red leaf' => 'red lettuce', 'mixed greens' => 'salad mix',
+        'wilted' => 'damaged lettuce', 'not fresh' => 'damaged lettuce',
+        'ship' => 'delivery', 'shipping' => 'delivery',
+        'track my package' => 'track my order', 'buy' => 'order',
+        'price' => 'pricing', 'sign in' => 'log in',
+        'create a new account' => 'create an account',
+    ],
+    'reactivate_keywords' => ['talk to the assistant','back to the assistant','back to the bot'],
+    'topic_word_aliases' => [
+        'romaine'=>'romaine_info','batavia'=>'batavia_info','bianca'=>'bianca_info',
+        'dabi'=>'dabi_info','red'=>'red_info','estrosa'=>'estrosa_info','olmetie'=>'olmetie_info',
+        'mixed'=>'mixed_info','bundle'=>'bundle_info','wholesale'=>'wholesale_info',
+        'delivery'=>'delivery_info','payment'=>'payment_info','pickup'=>'pickup_info',
+        'account'=>'account_overview','password'=>'forgot_password','login'=>'login_help',
+        'register'=>'create_account','profile'=>'edit_profile',
+
+    ],
+    'referential_pronouns' => ['it','this','that','they','them','those','these'],
+    'greetings' => ['hi','hello','hey','good morning','good afternoon','greetings','sup','yo'],
+    'greeting_responses' => [
+        "Welcome to Luntiang H.A.P.A.G.! I can help with orders, products, delivery, and more. What can I help you with today?",
+        "Hello! I'm your Luntiang H.A.P.A.G. assistant. Ask me about our hydroponic lettuce, orders, delivery, or anything else!",
+    ],
+    'gratitude' => ['thanks','thank you','ty','thx','appreciate it'],
+    'gratitude_responses' => ["You're welcome! Enjoy your fresh lettuce!","Happy to help! Let me know if you need anything else."],
+    'affirmative_words' => ['yes','yeah','yep','sure','okay','ok','please','go ahead','of course'],
+    'negative_words' => ['no','nope','nah','not now','no thanks','not really','maybe later'],
+    'contextual_word_aliases' => [
+        'return' => ['processing time'=>'return_processing','how long'=>'return_processing','replacement'=>'replacement_info'],
+        'delivery' => ['delivery time'=>'delivery_time','fees'=>'delivery_fee','track order'=>'track_delivery'],
+
+    ],
+    'fallback_responses' => [
+        "I'm not sure I understand. Could you rephrase? You can ask about products, orders, delivery, storage, or account help.",
+        "Can you tell me more? Is this about a product, an order, delivery, or your account?",
+    ],
+    'services' => [
+        'support_ticket' => [
+            'label'=>'Support Ticket','requires_login'=>true,
+            'keywords'=>['support ticket','submit a ticket','open a ticket','technical issue','issue with my account'],
+            'explain'=>"A Support Ticket is for general concerns, account issues, or questions about your order.\n\nUse it when you have a general question or issue that needs follow-up.",
+            'action'=>"To submit: Log into your account, go to Customer Dashboard > Support > Submit Ticket. Provide a subject, category, description, and order number if applicable.",
+            'link'=>'submit-ticket.php',
+        ],
+        'return' => [
+            'label'=>'Return & Refund','requires_login'=>true,'domain'=>'return',
+            'keywords'=>['return','refund','wrong item','damaged','wilted','missing','wrong order','money back','replacement'],
+            'explain'=>"Return & Refund is for problems with your order upon delivery — wrong product, wilted or damaged lettuce, or missing items.",
+            'action'=>"To submit: Log into your account, go to Customer Dashboard > Returns & Refunds. Provide your order number, product name, description, and photos.",
+            'link'=>'returns-refund.php',
+        ],
+
+
+
+            'explain'=>"We guarantee your lettuce arrives fresh and crisp. If there's a quality issue, we'll replace it free within 24 hours of delivery.",
+            'action'=>"Contact us with your order number and photos of the issue. We'll review and resolve within 1-2 business days.",
+            'link'=>'contact-support.php',
+        ],
+        'contact_support' => [
+            'label'=>'Contact Support',
+            'keywords'=>['contact','phone number','email','call you','reach you','contact info'],
+            'explain'=>"Reach us at: 0998-572-1327 (Mon-Sat, 8AM-6PM) | support@luntianghapag.com | Nostalji Subd., Paliparan I, Dasmarinas, Cavite.",
+            'action'=>null,'link'=>'contact-support.php',
+        ],
+        'feedback' => [
+            'label'=>'Feedback',
+            'keywords'=>['feedback','compliment','suggestion','review','rate us'],
+            'explain'=>"Share your experience with us — rate your order, suggest improvements, or tell us what you loved.",
+            'action'=>"Go to the Feedback page, rate your experience (1-5 stars), and leave comments.",
+            'link'=>'feedback.php',
+        ],
+        'live_agent' => [
+            'label'=>'Live Chat (human agent)',
+            'keywords'=>['agent','human','real person','representative','talk to someone','speak to someone'],
+            'explain'=>"Live Chat connects you with a support representative for immediate help.",
+            'link'=>null,
+        ],
+    ],
+    'knowledge' => [
+        ['keywords'=>['business hours','open hours','operating hours'],'answer'=>"We're open everyday. Customer support: Mon-Sat, 8:00 AM-6:00 PM. Delivery: 6:00 AM-8:00 PM daily."],
+        ['keywords'=>['about','who are you','about the farm','tell me about'],'answer'=>"Luntiang H.A.P.A.G. is a hydroponic lettuce farm in Nostalji Subd., Paliparan I, Dasmarinas, Cavite. We grow 8 premium lettuce varieties using clean, soil-free hydroponic systems — no chemicals, no pesticides. Our harvest-on-demand model means every head stays growing until you order."],
+        ['id'=>'product_overview','group'=>'overview','display'=>'our products','keywords'=>['what products','what do you sell','product types','lettuce products','lettuce varieties'],'answer'=>"We offer fresh hydroponic lettuce: Romaine, Batavia, Bianca, Dabi, Red Lettuce, Estrosa, Olmetie, Mixed Greens, Garden Salad Mix, plus bundles and wholesale packs. All harvested on demand. Browse our Products page for full details and pricing!"],
+        ['id'=>'romaine_info','group'=>'category','display'=>'Romaine Lettuce','keywords'=>['romaine','tell me about romaine'],'answer'=>"Romaine Lettuce (Giulia NH & Grizzari NZ) - P45 per cup. Tall, crisp dark green leaves. Best for Caesar salads, sandwiches, and wraps. 5-7 days refrigerated. 150 plants available."],
+        ['id'=>'batavia_info','group'=>'category','display'=>'Batavia Lettuce','keywords'=>['batavia','tell me about batavia'],'answer'=>"Batavia Lettuce (Graction NZ, Rijk Zwaan) - P40 per cup. Broad, crunchy leaves. Best for sandwiches, burgers, and salads. 5-7 days refrigerated. 110 plants available."],
+        ['id'=>'bianca_info','group'=>'category','display'=>'Bianca Lettuce','keywords'=>['bianca','butterhead','tell me about bianca'],'answer'=>"Bianca Lettuce (Butterhead, NH) - P45 per cup. Smooth, pliable leaves with mild sweet flavor. Best for lettuce wraps and delicate salads. 5-7 days refrigerated."],
+        ['id'=>'dabi_info','group'=>'category','display'=>'Dabi Lettuce','keywords'=>['dabi','tell me about dabi'],'answer'=>"Dabi Lettuce (Lollo Bionda, Frizz Zakken) - P40 per cup. Frilly, crinkled bright green leaves with a delicate crunch. Best for garnishes and mixed salads."],
+        ['id'=>'estrosa_info','group'=>'category','display'=>'Estrosa Lettuce','keywords'=>['estrosa','tell me about estrosa'],'answer'=>"Estrosa Lettuce (Lollo Bionda, Frizz Zakken) - P38 per cup. Intense green, firm crinkled leaves. Best for artisan salads and restaurant garnishes."],
+        ['id'=>'olmetie_info','group'=>'category','display'=>'Olmetie Lettuce','keywords'=>['olmetie','tell me about olmetie'],'answer'=>"Olmetie Lettuce (Batavia, Rijk Zwaan) - P48 per cup. Premium Batavia cultivar loved by chefs for its crisp bite and deep flavor."],
+        ['id'=>'red_info','group'=>'category','display'=>'Red Lettuce','keywords'=>['red lettuce','lollo rossa','tell me about red'],'answer'=>"Red Lettuce (Lollo Rossa) - P42 per cup. Vibrant red-tipped leaves with nutty flavor. Rich in antioxidants. Best for gourmet salads and colorful plating."],
+        ['id'=>'mixed_info','group'=>'category','display'=>'Mixed Greens','keywords'=>['mixed greens','salad mix','garden salad','tell me about mixed'],'answer'=>"Mixed Greens Cup (P60) combines Butterhead, Lollo Rossa, and Romaine. Garden Salad Mix (P65) combines Batavia, Estrosa, and Red Leaf. Both harvested on demand."],
+        ['id'=>'wholesale_info','group'=>'category','display'=>'Wholesale','keywords'=>['wholesale','bulk','restaurant','large order','reseller'],'answer'=>"We offer wholesale: Restaurant Pack (10 cups, P380), Wholesale Tray (20 cups, P700), and Wholesale Box (50 cups, P1650). Perfect for restaurants, canteens, and events."],
+        ['id'=>'bundle_info','group'=>'category','display'=>'Bundles','keywords'=>['bundle','family bundle','weekend bundle','starter bundle','caesar bundle','bundle options'],'answer'=>"Bundles: Family Bundle (4 cups + dressing, P180), Weekend Bundle (6 cups + dressing + wrap kit, P260), Healthy Starter Bundle (P160), Caesar Salad Bundle (P170). All harvested on demand."],
+
+
+
+        ['id'=>'delivery_info','domain'=>'delivery','keywords'=>['delivery','delivery fee','how much delivery','shipping','shipping and delivery','delivery options'],'answer'=>"FREE delivery within Nostalji Subdivision. P50 delivery fee for outside areas (automatically calculated). Same-day delivery for orders before 2 PM. Same-day pick-up always available — ready 1-3 hours after order confirmation."],
+        ['id'=>'delivery_time','domain'=>'delivery','keywords'=>['delivery time','when will it arrive','shipping time','how long does shipping take'],'answer'=>"Same-day delivery for orders before 2 PM. Orders after 2 PM delivered next morning. Pick-up ready within 1-3 hours after confirmation. Delivery hours: 6:00 AM-8:00 PM daily."],
+        ['id'=>'pickup_info','keywords'=>['pick up','pickup','pick-up','collect'],'answer'=>"Same-day pick-up is free and available everyday. Your order is ready 1-3 hours after confirmation. Pick up at Nostalji Subd., Paliparan I, Dasmarinas, Cavite."],
+        ['id'=>'delivery_locations','domain'=>'delivery','keywords'=>['delivery locations','where do you deliver','delivery areas','service area'],'answer'=>"FREE delivery within Nostalji Subdivision. We also deliver to surrounding areas in Dasmarinas, Cavite with a P50 delivery fee. Enter your address at checkout for automatic delivery fee calculation."],
+        ['id'=>'delivery_fee','domain'=>'delivery','keywords'=>['delivery fee','delivery cost','shipping cost'],'answer'=>"Free delivery within Nostalji Subdivision. P50 flat fee for outside areas. Pick-up is always free. Delivery fee is calculated automatically at checkout based on your address."],
+        ['id'=>'track_delivery','domain'=>'delivery','keywords'=>['track','tracking','where is my order','order status','track my order'],'answer'=>"Track your order from your Customer Dashboard > My Orders. You'll see each stage: Order Received, Payment Confirmed, Harvest Queue, Harvesting, Packing, Ready for Pick-Up or Out for Delivery, Delivered."],
+        ['keywords'=>['cancel','modify','change my order','cancel or modify'],'answer'=>"You can modify or cancel within 2 hours of placing. After that, your order may already be in the harvest queue. Contact support at 0998-572-1327 for help."],
+        ['keywords'=>['how to order','place an order','ordering','how do i order'],'answer'=>"Browse products, add to cart, proceed to checkout. Choose delivery or pick-up, enter your address, select payment (COD, GCash, Maya, Bank Transfer), and confirm. You'll get an order number to track your harvest progress."],
+        ['id'=>'payment_info','keywords'=>['payment','how to pay','cod','gcash','maya','bank transfer','payment methods','what payment'],'answer'=>"We accept Cash on Delivery (COD), GCash, Maya, and Bank Transfer. All methods are secure. COD payments are due upon delivery."],
+        ['keywords'=>['promo','coupon','discount','promotion'],'answer'=>"Current promos: FRESH10 (10% off first order), FREESUBD (free delivery within subdivision), BUNDLE5 (P50 off bundles). Enter code at checkout."],
+        ['id'=>'account_overview','group'=>'overview','display'=>'account help','keywords'=>['account help','account assistance','account'],'answer'=>"I can help with: creating an account, logging in, resetting your password, changing your password, updating your profile. What do you need?"],
+        ['id'=>'create_account','group'=>'account','auth_aware'=>true,'keywords'=>['create account','register','sign up','how do i register','how do i create'],'answer'=>"Go to the Register page. Enter your name, email, phone, address, and password. Confirm and submit. You'll be able to shop and track orders immediately."],
+        ['id'=>'login_help','group'=>'account','auth_aware'=>true,'keywords'=>['log in','login help','how to login','how do i log in'],'answer'=>"Go to the Login page. Enter your email and password, then click Sign In. If you forgot your password, click 'Forgot Password?' to reset it."],
+        ['id'=>'forgot_password','group'=>'account','auth_aware'=>true,'keywords'=>['forgot password','reset password','password reset','cant log in','how do i reset'],'answer'=>"On the Login page, click 'Forgot Password?'. Enter your email and click 'Send Reset Link'. Follow the instructions to create a new password."],
+        ['id'=>'change_password','group'=>'account','keywords'=>['change password','update password','how do i change'],'answer'=>"Log into your account, go to Dashboard > Profile > Change Password. Enter your current password, new password, confirm, and save."],
+        ['id'=>'edit_profile','group'=>'account','keywords'=>['update profile','edit profile','how do i update'],'answer'=>"Log into your account, go to Dashboard > Profile > Edit Profile. Update your information and save changes."],
+        ['id'=>'return_eligibility','domain'=>'return','keywords'=>['return eligibility','eligible for return','can i return','am i eligible'],'answer'=>"You can return if: lettuce arrived wilted/damaged, wrong product delivered, or items missing. Must request within 24 hours of delivery."],
+        ['id'=>'return_processing','domain'=>'return','keywords'=>['return time','refund time','how long return','return processing','how long does a return'],'answer'=>"Returns are reviewed within 1-2 business days. Approved refunds processed within 3-5 business days. Replacement orders are prioritized for same-day harvest."],
+        ['id'=>'replacement_info','domain'=>'return','keywords'=>['replacement','exchange','send replacement','can i get a replacement'],'answer'=>"For damaged or wrong items, you can request a replacement. We'll harvest a fresh batch and deliver it at no extra cost."],
+        ['keywords'=>['best seller','popular','customer favorite'],'answer'=>"Best sellers: Weekend Bundle (P260), Romaine Lettuce (P45), Batavia Lettuce (P40), Bianca Lettuce (P45), Garden Salad Mix (P65), Romaine Family Pack (P160)."],
+        ['keywords'=>['faq','common questions','general question','i have a question'],'answer'=>"Common questions: How fresh is the lettuce? What varieties do you have? How do I place an order? How does delivery work? What is harvest-on-demand? How should I store my lettuce?"],
+        ['keywords'=>['hydroponic','how is it grown','growing method','farming','how is the lettuce grown'],'answer'=>"Hydroponics means growing in nutrient-rich water without soil. Benefits: 90% less water, no pesticides, year-round growing, cleaner produce. Our lettuce is chemical-free and harvested on demand."],
+
+        ['keywords'=>['availability','what is available','what lettuce is available','in stock'],'answer'=>"All our varieties are available while supplies last. Each product page shows current plant availability. Check the Products page for live availability. Popular items: Romaine (150 plants), Batavia (110), Bianca (80)."],
+        ['keywords'=>['contact support','how do i contact','contact you','phone','email address'],'answer'=>"Contact us at 0998-572-1327 (Mon-Sat, 8AM-6PM) or support@luntianghapag.com. Visit our farm at Nostalji Subd., Paliparan I, Dasmarinas, Cavite. Open everyday!"],
+        ['keywords'=>['submit a ticket','how do i submit a ticket','ticket','support ticket'],'answer'=>"To submit a support ticket: Log in, go to Dashboard > Support > Submit Ticket. Provide a subject, category, description, and order number if applicable. Our team will respond within 1-2 business days."],
+        ['keywords'=>['return request','return and refund','how do i return','how do i submit a return'],'answer'=>"To submit a return: Log in, go to Dashboard > Support > Return & Refund. Provide your order number, product name, reason, and photos. Returns must be requested within 24 hours of delivery."],
+        ['keywords'=>['live chat','talk to agent','human','real person','agent'],'answer'=>"You're already chatting with me! If you need a human agent, just say 'I want to talk to a live agent' and I'll connect you with our support team. They're available Mon-Sat, 8AM-6PM."],
+        ['keywords'=>['assistant','talk to the assistant','back to assistant','talk to assistant','assistant again'],'answer'=>"I'm here! The live chat assistant is always available to help with your questions about products, orders, delivery, and more. What can I help you with?"],
+    ],
+    'quick_actions' => [
+        'primary' => [
+            ['label'=>'What products do you have?', 'message'=>'What products do you have?'],
+            ['label'=>'I want to talk to a live agent', 'message'=>'I want to talk to a live agent'],
+            ['label'=>'How do I place an order?', 'message'=>'How do I place an order?'],
+        ],
+        'more' => [
+            ['label'=>'How does delivery work?', 'message'=>'How does delivery work?'],
+            ['label'=>'How fresh is the lettuce?', 'message'=>'How fresh is the lettuce?'],
+            ['label'=>'How do I store my lettuce?', 'message'=>'How do I store my lettuce?'],
+            ['label'=>'How do I create an account?', 'message'=>'How do I create an account?'],
+            ['label'=>'How do I return an item?', 'message'=>'How do I return an item?'],
+            ['label'=>'How do I contact support?', 'message'=>'How do I contact support?'],
+            ['label'=>'I have a general question', 'message'=>'I have a general question'],
+            ['label'=>'Talk to the assistant', 'message'=>'Talk to the assistant'],
+        ],
+    ],
+];
