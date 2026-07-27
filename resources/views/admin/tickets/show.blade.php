@@ -2,6 +2,12 @@
 @section('title','Ticket Detail')
 @section('header','Ticket #'.$ticket->id)
 @section('content')
+<div class="mb-4">
+  <a href="{{ route('admin.tickets.index') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[rgba(27,94,32,0.12)] text-sm font-bold text-[#1a2e1c] hover:bg-[#e8f5e9] transition-colors shadow-sm">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Back to Tickets
+  </a>
+</div>
 <div class="bg-white rounded-xl border p-6">
   <h2 class="font-black text-lg">{{ $ticket->subject }}</h2>
   <p class="text-xs text-[#5a7a5c]">{{ $ticket->user->first_name }} {{ $ticket->user->last_name }} • {{ $ticket->user->email }} • {{ $ticket->category }} • {{ $ticket->priority }} • {{ $ticket->status }}</p>

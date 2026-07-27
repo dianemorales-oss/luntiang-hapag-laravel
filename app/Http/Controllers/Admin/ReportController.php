@@ -183,11 +183,46 @@ class ReportController extends Controller
             ];
         }
 
+        // Low Selling Products - lowest sales performance
+        try {
+            $lowSelling = DB::table('order_items')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
+                ->select(
+                    'order_items.product_name',
+                    'order_items.product_id',
+                    DB::raw('SUM(order_items.quantity) as total_qty'),
+                    DB::raw('SUM(order_items.quantity * order_items.price) as revenue'),
+                    DB::raw('COALESCE(products.plants_available, 0) as stock'),
+                    DB::raw('COALESCE(products.image, "") as image')
+                )
+                ->where('orders.status', '!=', 'cancelled')
+                ->groupBy('order_items.product_name','order_items.product_id','products.plants_available','products.image')
+                ->orderBy('total_qty', 'asc')
+                ->orderBy('revenue', 'asc')
+                ->limit(8)
+                ->get();
+
+            // Also include products with zero sales
+            $soldProductIds = DB::table('order_items')->distinct()->pluck('product_id')->toArray();
+            $zeroSales = DB::table('products')
+                ->whereNotIn('id', $soldProductIds)
+                ->where('is_active', 1)
+                ->select('name as product_name','id as product_id', DB::raw('0 as total_qty'), DB::raw('0 as revenue'), 'plants_available as stock', 'image')
+                ->limit(5)
+                ->get();
+
+            $lowSelling = $lowSelling->merge($zeroSales)->sortBy('total_qty')->take(8);
+        } catch (\Exception $e) {
+            $lowSelling = collect();
+        }
+
         return view('admin.reports.index', compact(
             'selectedDate', 'ts', 'weekStart', 'weekEnd', 'daySales', 'dayOrders',
             'weekSales', 'monthSales', 'totalOrders', 'avgOrder', 'deliveryCount',
             'pickupCount', 'newCust', 'totalCust', 'bestSellers', 'chartStart', 'chartEnd', 'dailyData',
-            'daily7Filled', 'daily30Filled', 'monthly12Filled', 'statusBreakdown', 'cust30Filled', 'categorySales'
+            'daily7Filled', 'daily30Filled', 'monthly12Filled', 'statusBreakdown', 'cust30Filled', 'categorySales',
+            'lowSelling'
         ));
     }
 }

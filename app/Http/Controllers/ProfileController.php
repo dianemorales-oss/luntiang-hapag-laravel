@@ -76,9 +76,9 @@ class ProfileController extends Controller
             }
         }
 
-        // Retrieve Order Statistics
+        // Retrieve Order Statistics - include active for new cancel logic
         $orderStats = [];
-        foreach (['preparing', 'ready', 'delivered', 'completed', 'cancelled'] as $s) {
+        foreach (['active','preparing', 'ready', 'delivered', 'completed', 'cancelled'] as $s) {
             $orderStats[$s] = Order::where('user_id', $userId)->where('status', $s)->count();
         }
         $totalOrders = array_sum($orderStats);
@@ -108,11 +108,21 @@ class ProfileController extends Controller
         // Saved Addresses
         $addresses = CustomerAddress::where('user_id', $userId)->orderByDesc('is_default')->get();
 
-        // Claimed Coupons
-        $coupons = Promotion::join('claimed_coupons', 'promotions.id', '=', 'claimed_coupons.promotion_id')
+        // Claimed Coupons - exclude expired and used
+        $couponsQuery = Promotion::join('claimed_coupons', 'promotions.id', '=', 'claimed_coupons.promotion_id')
             ->where('claimed_coupons.user_id', $userId)
             ->where('promotions.is_active', 1)
-            ->select('promotions.*', 'claimed_coupons.claimed_at')
+            ->whereNull('claimed_coupons.used_at');
+
+        // Auto-expire: exclude expired claimed coupons
+        if (\Illuminate\Support\Facades\Schema::hasColumn('claimed_coupons', 'expires_at')) {
+            $couponsQuery->where(function($q){
+                $q->whereNull('claimed_coupons.expires_at')->orWhere('claimed_coupons.expires_at','>', now());
+            });
+        }
+
+        $coupons = $couponsQuery
+            ->select('promotions.*', 'claimed_coupons.claimed_at', 'claimed_coupons.expires_at as claimed_expires_at')
             ->orderByDesc('claimed_coupons.claimed_at')
             ->get();
 

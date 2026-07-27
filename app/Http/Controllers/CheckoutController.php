@@ -196,7 +196,7 @@ class CheckoutController extends Controller
             $order = Order::create([
                 'user_id' => $userId,
                 'order_number' => $orderNumber,
-                'status' => 'preparing',
+                'status' => 'active',
                 'subtotal' => $subtotal,
                 'delivery_fee' => $deliveryFee,
                 'discount' => $discount,
@@ -290,6 +290,7 @@ class CheckoutController extends Controller
         $claimedCoupon = ClaimedCoupon::where('user_id', $userId)->where('promotion_id', $promo->id)->first();
         if (!$claimedCoupon) return null;
         if (Schema::hasColumn('claimed_coupons', 'used_at') && !empty($claimedCoupon->used_at)) return null;
+        if (Schema::hasColumn('claimed_coupons', 'expires_at') && !empty($claimedCoupon->expires_at) && \Carbon\Carbon::parse($claimedCoupon->expires_at)->isPast()) return null;
         return $promo;
     }
 

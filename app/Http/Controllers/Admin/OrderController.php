@@ -25,11 +25,12 @@ class OrderController extends Controller
             ->where('status', '!=', 'cancelled')
             ->sum('total') ?: 0;
 
+        $activeCount = Order::where('status', 'active')->count();
         $preparingCount = Order::where('status', 'preparing')->count();
         $readyCount = Order::where('status', 'ready')->count();
 
         return view('admin.orders.index', compact(
-            'allOrders', 'filter', 'todayOrders', 'todayRevenue', 'preparingCount', 'readyCount'
+            'allOrders', 'filter', 'todayOrders', 'todayRevenue', 'activeCount', 'preparingCount', 'readyCount'
         ));
     }
 
@@ -37,12 +38,13 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id);
         $status = $request->input('status');
-        $allowed = ['preparing','ready','delivered','completed','cancelled'];
+        $allowed = ['active','preparing','ready','delivered','completed','cancelled'];
         if (!in_array($status, $allowed)) return back()->with('error','Invalid status');
         $order->status = $status;
         $order->save();
 
         $labels = [
+            'active'=>'Active',
             'preparing'=>'Preparing Order',
             'ready'=>'Ready',
             'delivered'=>'Delivered/Picked Up',

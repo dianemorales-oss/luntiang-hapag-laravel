@@ -30,11 +30,15 @@
     </div>
   </div>
 
-  <div class="grid lg:grid-cols-2 gap-6 mb-6">
+  <div class="grid lg:grid-cols-3 gap-6 mb-6">
     <!-- Operations -->
     <div class="bg-white rounded-xl border border-[rgba(27,94,32,0.08)] p-5">
       <h2 class="font-black text-sm mb-3">Operations</h2>
       <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <span>Active</span>
+          <span class="font-bold text-blue-600">{{ $activeCount ?? 0 }}</span>
+        </div>
         <div class="flex justify-between text-sm">
           <span>Preparing</span>
           <span class="font-bold text-amber-600">{{ $preparingCount }}</span>
@@ -93,6 +97,51 @@
           <p class="font-black">{{ $todayOrders }}</p>
           <p class="text-[10px] text-[#5a7a5c]">Today</p>
         </div>
+      </div>
+    </div>
+
+    <!-- Customer Feedback Overview -->
+    <div class="bg-white rounded-xl border border-[rgba(27,94,32,0.08)] p-5">
+      <h2 class="font-black text-sm mb-3 flex items-center gap-2">⭐ Customer Feedback Overview</h2>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="text-center">
+          <p class="text-3xl font-black text-[#17611f]">{{ number_format($avgRating, 1) }}</p>
+          <div class="flex text-amber-400 text-xs justify-center">
+            @for($i=1;$i<=5;$i++)
+              {{ $i <= round($avgRating) ? '★' : '☆' }}
+            @endfor
+          </div>
+          <p class="text-[11px] text-[#5a7a5c] mt-1">{{ $totalFeedback }} reviews</p>
+        </div>
+        <div class="flex-1 space-y-1">
+          @php $maxDist = max(1, max($ratingDistribution)); @endphp
+          @foreach([5,4,3,2,1] as $star)
+            @php $count = $ratingDistribution[$star] ?? 0; $pct = $totalFeedback >0 ? ($count/$totalFeedback)*100 : 0; @endphp
+            <div class="flex items-center gap-2 text-[11px]">
+              <span class="w-3 font-bold">{{ $star }}★</span>
+              <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div class="bg-amber-400 h-full rounded-full" style="width:{{ $pct }}%"></div>
+              </div>
+              <span class="w-6 text-[10px] text-[#5a7a5c]">{{ $count }}</span>
+            </div>
+          @endforeach
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-[#5a7a5c] uppercase tracking-widest mb-2">Latest Feedback</p>
+        @forelse($latestFeedback as $fb)
+          <div class="border-t border-[rgba(27,94,32,0.06)] py-2.5 first:border-t-0">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold">{{ $fb->user ? $fb->user->first_name.' '.$fb->user->last_name : ($fb->guest_name ?: 'Guest') }}</span>
+              <span class="text-[11px] text-amber-500">{{ str_repeat('★',$fb->rating) }}{{ str_repeat('☆',5-$fb->rating) }}</span>
+            </div>
+            <p class="text-xs text-[#5a7a5c] mt-1 line-clamp-2">{{ \Str::limit($fb->comments ?: $fb->subject ?: 'No comment', 90) }}</p>
+            <p class="text-[10px] text-[#9e9e9e] mt-1">{{ $fb->created_at->diffForHumans() }}</p>
+          </div>
+        @empty
+          <p class="text-xs text-[#9e9e9e] py-4 text-center">No feedback yet.</p>
+        @endforelse
+        <a href="{{ route('admin.feedback.index') }}" class="block mt-3 text-center text-xs font-bold text-[#17611f] hover:underline">View All Feedback →</a>
       </div>
     </div>
   </div>

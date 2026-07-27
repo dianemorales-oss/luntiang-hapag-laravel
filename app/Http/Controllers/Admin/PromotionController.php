@@ -35,7 +35,8 @@ class PromotionController extends Controller
         // Standard Create
         $request->validate([
             'code' => 'required',
-            'discount_value' => 'required|numeric'
+            'discount_value' => 'required|numeric',
+            'claimed_validity_days' => 'nullable|integer|min:1|max:365'
         ]);
 
         Promotion::create([
@@ -46,7 +47,8 @@ class PromotionController extends Controller
             'min_order' => (float)$request->input('min_order', 0),
             'is_active' => $request->has('is_active'),
             'is_free_delivery' => $request->has('is_free_delivery'),
-            'expires_at' => $request->input('expires_at')
+            'expires_at' => $request->input('expires_at') ?: null,
+            'claimed_validity_days' => $request->input('claimed_validity_days') ? (int)$request->input('claimed_validity_days') : null,
         ]);
 
         return redirect()->route('admin.promotions.index')->with('success', 'Promo created successfully.');

@@ -186,7 +186,7 @@
                 @endif
               </td>
               <td class="p-3">
-                <div class="flex gap-1">
+                <div class="flex gap-1 flex-wrap">
                   <a href="?edit={{ $p->id }}" class="px-3 py-1.5 rounded-lg border border-[rgba(27,94,32,0.12)] text-[#1a2e1c] text-xs font-bold hover:bg-[#e8f5e9] transition-colors">Edit</a>
                   <form method="POST" action="{{ route('admin.products.store') }}" class="inline">
                     @csrf
@@ -195,6 +195,11 @@
                     <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-bold text-[#5a7a5c] hover:bg-[#e8f5e9] transition-colors">
                       {{ $p->is_active ? 'Deactivate' : 'Activate' }}
                     </button>
+                  </form>
+                  <form method="POST" action="{{ route('admin.products.destroy', $p->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete {{ addslashes($p->name) }}?\n\nThis action cannot be undone and will permanently remove the product, its images, and related bundle links.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-100 text-xs font-bold hover:bg-red-100 hover:text-red-700 transition-colors">Delete</button>
                   </form>
                 </div>
               </td>

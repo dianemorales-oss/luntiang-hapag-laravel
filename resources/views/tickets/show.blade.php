@@ -67,6 +67,31 @@
     @if(session('success'))<div class="mx-6 mt-5 rounded-xl bg-[#e8f5e9] border border-[#c8e6c9] px-4 py-3 text-sm text-[#17611f]">{{ session('success') }}</div>@endif
     @if(session('error'))<div class="mx-6 mt-5 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">{{ session('error') }}</div>@endif
 
+    @if($ticket->status === 'resolved')
+      <div class="mx-6 mt-5 p-5 border border-green-200 bg-green-50/80 rounded-2xl space-y-3">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-[#1a2e1c]">✅ Our support team believes your issue has been resolved.</p>
+            <p class="text-sm text-[#5a7a5c] mt-0.5">Please let us know if everything has been resolved successfully.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3 pt-1 pl-11">
+          <form method="GET" action="{{ route('tickets.close',['id'=>$ticket->id]) }}" onsubmit="return confirm('Close this ticket?\n\nOnce closed, no additional replies can be added.');">
+            <button type="submit" class="px-5 py-2.5 rounded-full bg-[#17611f] text-white text-sm font-bold hover:bg-[#14521a] transition-colors flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              Yes, Close Ticket
+            </button>
+          </form>
+          <form method="GET" action="{{ route('tickets.reopen',['id'=>$ticket->id]) }}" onsubmit="return confirm('Reopen this ticket?');">
+            <button type="submit" class="px-5 py-2.5 rounded-full border border-gray-300 text-[#1a2e1c] text-sm font-bold hover:bg-gray-50 transition-colors">No, I Still Need Help</button>
+          </form>
+        </div>
+      </div>
+    @endif
+
     <div class="p-6 space-y-4 max-h-[440px] overflow-y-auto bg-[#FBF9F4] thread-scroll" id="threadContainer">
       <div class="flex justify-end">
         <div class="max-w-[80%]">
@@ -90,31 +115,6 @@
         </div>
       @endforeach
     </div>
-
-    @if($ticket->status === 'resolved')
-      <div class="p-5 border-t border-gray-100 bg-green-50/60 space-y-3">
-        <div class="flex items-start gap-3">
-          <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-bold text-[#1a2e1c]">Our support team believes your issue has been resolved.</p>
-            <p class="text-sm text-[#5a7a5c] mt-0.5">Please let us know if everything has been resolved successfully.</p>
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-3 pt-1 pl-11">
-          <form method="GET" action="{{ route('tickets.close',['id'=>$ticket->id]) }}" onsubmit="return confirm('Close this ticket?\n\nOnce closed, no additional replies can be added.');">
-            <button type="submit" class="px-5 py-2.5 rounded-full bg-[#17611f] text-white text-sm font-bold hover:bg-[#14521a] transition-colors flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-              Yes, Close Ticket
-            </button>
-          </form>
-          <form method="GET" action="{{ route('tickets.reopen',['id'=>$ticket->id]) }}" onsubmit="return confirm('Reopen this ticket?');">
-            <button type="submit" class="px-5 py-2.5 rounded-full border border-gray-300 text-[#1a2e1c] text-sm font-bold hover:bg-gray-50 transition-colors">No, I Still Need Help</button>
-          </form>
-        </div>
-      </div>
-    @endif
 
     @if($ticket->status === 'closed')
       <div class="p-5 border-t border-gray-100 text-center bg-gray-50/50">

@@ -80,7 +80,7 @@ Route::get('/feedback.php', [SupportController::class, 'feedback']);
 Route::post('/feedback', [SupportController::class, 'feedbackStore'])->name('feedback.submit');
 Route::post('/feedback.php', [SupportController::class, 'feedbackStore']);
 
-// Claim coupon – now supports AJAX for instant vanish + regular redirect fallback
+// Claim coupon – supports AJAX + claimed_validity_days expiration
 Route::post('/coupons/claim', function(\Illuminate\Http\Request $request){
     if (!session()->has('user_id')) {
         if ($request->expectsJson() || $request->wantsJson() || $request->header('X-Requested-With')==='XMLHttpRequest') {
@@ -106,12 +106,25 @@ Route::post('/coupons/claim', function(\Illuminate\Http\Request $request){
         $msg = 'You already claimed this coupon.';
         return $isJson ? response()->json(['success'=>false,'message'=>$msg], 409) : back()->with('error', $msg);
     }
-    ClaimedCoupon::create(['user_id'=>$userId,'promotion_id'=>$promotionId]);
+
+    // Compute expires_at based on claimed_validity_days if set
+    $expiresAt = null;
+    if (!empty($promotion->claimed_validity_days) && $promotion->claimed_validity_days > 0) {
+        $expiresAt = now()->addDays((int)$promotion->claimed_validity_days);
+    }
+
+    ClaimedCoupon::create([
+        'user_id'=>$userId,
+        'promotion_id'=>$promotionId,
+        'claimed_at'=>now(),
+        'expires_at'=>$expiresAt,
+    ]);
 
     if ($isJson) {
-        return response()->json(['success'=>true,'message'=>'Coupon claimed! It will now vanish from home.','promotion_id'=>$promotionId]);
+        $msg = 'Coupon claimed!'.($expiresAt ? ' Expires in '.$promotion->claimed_validity_days.' days.' : ' It will now vanish from home.');
+        return response()->json(['success'=>true,'message'=>$msg,'promotion_id'=>$promotionId, 'expires_at'=>$expiresAt]);
     }
-    return back()->with('success','Coupon claimed');
+    return back()->with('success','Coupon claimed'.($expiresAt ? ' – expires in '.$promotion->claimed_validity_days.' days' : ''));
 })->name('coupons.claim')->middleware('customer.auth');
 
 // Customer Notifications - Real-time system

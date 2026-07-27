@@ -21,6 +21,7 @@ class DashboardController extends Controller
         $openTickets = Ticket::where('status', 'open')->count();
         $pendingReturns = ReturnRequest::where('status', 'pending')->count();
 
+        $activeCount = Order::where('status', 'active')->count();
         $preparingCount = Order::where('status', 'preparing')->count();
         $readyCount = Order::where('status', 'ready')->count();
         $deliveredCount = Order::where('status', 'delivered')->count();
@@ -40,10 +41,28 @@ class DashboardController extends Controller
             ->where('status', '!=', 'cancelled')
             ->count();
 
+        // Customer Feedback Overview
+        try {
+            $feedbackModel = \App\Models\Feedback::query();
+            $avgRating = $feedbackModel->avg('rating') ?: 0;
+            $totalFeedback = \App\Models\Feedback::count();
+            $ratingDistribution = [];
+            for ($i=5; $i>=1; $i--) {
+                $ratingDistribution[$i] = \App\Models\Feedback::where('rating', $i)->count();
+            }
+            $latestFeedback = \App\Models\Feedback::with('user')->orderByDesc('created_at')->limit(5)->get();
+        } catch (\Exception $e) {
+            $avgRating = 0;
+            $totalFeedback = 0;
+            $ratingDistribution = [5=>0,4=>0,3=>0,2=>0,1=>0];
+            $latestFeedback = collect();
+        }
+
         return view('admin.dashboard', compact(
             'todayRevenue', 'todayOrders', 'totalCust', 'newCustToday', 'openTickets',
-            'pendingReturns', 'preparingCount', 'readyCount', 'deliveredCount', 'completedCount',
-            'cancelledCount', 'deliveryCount', 'pickupCount', 'freeDeliveryCount'
+            'pendingReturns', 'activeCount', 'preparingCount', 'readyCount', 'deliveredCount', 'completedCount',
+            'cancelledCount', 'deliveryCount', 'pickupCount', 'freeDeliveryCount',
+            'avgRating','totalFeedback','ratingDistribution','latestFeedback'
         ));
     }
 }

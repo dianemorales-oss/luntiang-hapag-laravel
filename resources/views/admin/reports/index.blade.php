@@ -39,6 +39,7 @@
         <option value="status">Order Status Breakdown</option>
         <option value="detail7">7-Day Revenue Detail</option>
         <option value="combo">Sales Amount vs Quantity Sold (Combo)</option>
+        <option value="lowselling">Low Selling Products</option>
       </select>
       <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#17611f]">▼</span>
     </div>
@@ -84,6 +85,8 @@
 
   <div class="relative h-[380px] w-full"><canvas id="mainChart"></canvas></div>
 
+  <div id="lowSellingTable" class="hidden"></div>
+
   <div class="mt-4 flex items-center justify-between text-[10px] text-[#9e9e9e] border-t border-[rgba(27,94,32,0.06)] pt-3">
     <span>Distinct colors • Hover for exact date & value</span>
     <span>Data ending {{ date('M j, Y', $ts) }}</span>
@@ -127,6 +130,17 @@
     <div class="bg-white rounded-2xl border p-5"><h3 class="text-[13px] font-black mb-3">🚚 Delivery vs Pick-Up – Pie</h3><div class="h-[200px] relative flex items-center justify-center"><canvas id="miniDelivery"></canvas></div></div>
     <div class="bg-white rounded-2xl border p-5"><h3 class="text-[13px] font-black mb-3">📋 Order Status – Horizontal Bar</h3><div class="h-[200px] relative"><canvas id="miniStatus"></canvas></div></div>
     <div class="bg-white rounded-2xl border p-5 lg:col-span-2"><h3 class="text-[13px] font-black mb-3">📊 Sales Amount vs Quantity Sold – Combo</h3><div class="h-[260px] relative"><canvas id="miniCombo"></canvas></div></div>
+
+    <div class="bg-white rounded-2xl border p-5 lg:col-span-2">
+      <h3 class="text-[13px] font-black mb-3">📉 Low Selling Products – Lowest Performance</h3>
+      <div class="h-[200px] relative"><canvas id="miniLowSelling"></canvas></div>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead><tr class="text-[10px] uppercase text-[#5a7a5c] border-b"><th class="text-left py-1.5">Product Name</th><th class="text-left py-1.5">Units Sold</th><th class="text-left py-1.5">Revenue</th><th class="text-left py-1.5">Remaining Stock</th></tr></thead>
+          <tbody id="miniLowSellingTable"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -142,6 +156,7 @@ const statusBreakdown = @json($statusBreakdown);
 const customerGrowth = @json($cust30Filled);
 const deliveryCount = {{ $deliveryCount }};
 const pickupCount = {{ $pickupCount }};
+const lowSelling = @json($lowSelling ?? []);
 
 const DISTINCT = ['#0d3311','#1976d2','#ff9800','#e91e63','#9c27b0','#00acc1','#f9a825','#43a047','#ef6c00','#5e35b1','#00897b','#d81b60'];
 const primary = '#0d3311';
@@ -173,7 +188,7 @@ function getSrc(){ if(currentRange==='7') return daily7; if(currentRange==='30')
 
 function renderFocus(){
   const rep=currentReportType, gtype=currentGraphType, src=getSrc();
-  const titles={ revenue:['📈','Revenue Trend'], orders:['📦','Orders Count Trend'], customer:['👥','Customer Growth (30d)'], bestseller:['🏆','Best Seller Product'], category:['🥗','Sales by Category'], delivery:['🚚','Delivery vs Pick-Up'], status:['📋','Order Status Breakdown'], detail7:['📅','7-Day Revenue Detail'], combo:['📊','Sales Amount vs Quantity Sold'] };
+  const titles={ revenue:['📈','Revenue Trend'], orders:['📦','Orders Count Trend'], customer:['👥','Customer Growth (30d)'], bestseller:['🏆','Best Seller Product'], category:['🥗','Sales by Category'], delivery:['🚚','Delivery vs Pick-Up'], status:['📋','Order Status Breakdown'], detail7:['📅','7-Day Revenue Detail'], combo:['📊','Sales Amount vs Quantity Sold'], lowselling:['📉','Low Selling Products'] };
   const [ic,tt]=titles[rep]||titles.revenue;
   document.getElementById('focusIcon').textContent=ic; document.getElementById('focusTitle').textContent=tt;
 
@@ -246,6 +261,54 @@ function renderFocus(){
     labels=lbl; type='bar'; datasets=[{ label:'Sum of SalesAmount', data: rev, backgroundColor:'#9e9e9e', borderRadius:4 }, { label:'Sum of Quantity', data: qty, type:'line', borderColor: blue, borderWidth:2.5, tension:0.35, yAxisID:'y1' }]; opts.scales={ x:{ ticks:{ display:false } }, y:{ beginAtZero:true }, y1:{ position:'right', grid:{ display:false }, beginAtZero:true } };
     document.getElementById('detail7BarsFocus').classList.add('hidden');
   }
+  else if(rep==='lowselling'){
+    const lbl=lowSelling.map(p=> (p.product_name||'').slice(0,16));
+    const qty=lowSelling.map(p=> p.total_qty);
+    const rev=lowSelling.map(p=> parseFloat(p.revenue));
+    const stock=lowSelling.map(p=> p.stock);
+    labels=lbl;
+    if(gtype==='pie'){
+      type='pie'; datasets=[{ data: qty, backgroundColor: DISTINCT }]; opts.scales={}; opts.plugins.legend.display=false;
+    } else if(gtype==='horizontalBar'){
+      type='bar'; opts.indexAxis='y';
+      datasets=[{ label:'Units Sold', data: qty, backgroundColor: '#ef6c00', borderRadius:6 }, { label:'Revenue', data: rev, backgroundColor: '#9e9e9e', borderRadius:6 }];
+    } else if(gtype==='combo'){
+      type='bar';
+      datasets=[
+        { label:'Units Sold', data: qty, backgroundColor: '#ef6c00', borderRadius:6 },
+        { label:'Revenue', data: rev, type:'line', borderColor: blue, borderWidth:2.5, tension:0.35, yAxisID:'y1' },
+        { label:'Stock', data: stock, type:'line', borderColor: '#43a047', borderDash:[5,5], borderWidth:2 }
+      ];
+      opts.scales={ y:{ beginAtZero:true, title:{ display:true, text:'Sold / Stock' } }, y1:{ position:'right', grid:{ display:false }, title:{ display:true, text:'Revenue' } } };
+      datasets[1].yAxisID='y1';
+    } else {
+      type=gtype==='line'?'line':'bar';
+      datasets=[{ label:'Units Sold', data: qty, backgroundColor: gtype==='line'?'rgba(239,108,0,0.12)':'#ef6c00', borderColor:'#ef6c00', fill: gtype==='line', tension:0.35, borderRadius:6 }];
+    }
+    document.getElementById('detail7BarsFocus').classList.add('hidden');
+    // Also render table below chart via custom HTML
+    const lowTable = document.getElementById('lowSellingTable');
+    if(lowTable){
+      lowTable.innerHTML = `
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-sm">
+            <thead><tr class="text-[11px] uppercase text-[#5a7a5c] border-b"><th class="text-left py-2">Product Name</th><th class="text-left py-2">Units Sold</th><th class="text-left py-2">Revenue</th><th class="text-left py-2">Remaining Stock</th></tr></thead>
+            <tbody>${lowSelling.map(p=>`<tr class="border-b border-gray-50 hover:bg-gray-50"><td class="py-2.5 font-bold">${p.product_name}</td><td class="py-2.5">${p.total_qty}</td><td class="py-2.5">₱${Number(p.revenue).toLocaleString(undefined,{minimumFractionDigits:2})}</td><td class="py-2.5"><span class="px-2 py-0.5 rounded-full text-xs ${p.stock>20?'bg-green-100 text-green-700': p.stock>0?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700'}">${p.stock}</span></td></tr>`).join('')}</tbody>
+          </table>
+        </div>`;
+      lowTable.classList.remove('hidden');
+    }
+  } else {
+    // Fallback hide low table
+    const lowTable=document.getElementById('lowSellingTable');
+    if(lowTable) lowTable.classList.add('hidden');
+  }
+
+  // Hide low table for non-lowselling
+  if(rep!=='lowselling'){
+    const lowTable=document.getElementById('lowSellingTable');
+    if(lowTable) lowTable.classList.add('hidden');
+  }
 
   cMain({ type: type, data:{ labels: labels, datasets: datasets }, options: opts });
 }
@@ -260,6 +323,13 @@ function renderAll(){
   cChart('miniDelivery',{ type:'pie', data:{ labels:['Delivery','Pick-Up'], datasets:[{ data:[deliveryCount, pickupCount], backgroundColor:[primary, blue] }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{ size:10 } } } } } });
   cChart('miniStatus',{ type:'bar', data:{ labels: statusBreakdown.map(s=> s.status), datasets:[{ data: statusBreakdown.map(s=> s.cnt), backgroundColor: DISTINCT, borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{ legend:{ display:false } } } });
   cChart('miniCombo',{ type:'bar', data:{ labels: bestSellers.map(b=> b.product_name.slice(0,10)), datasets:[{ label:'Sales Amount', data: bestSellers.map(b=> parseFloat(b.revenue)), backgroundColor:'#9e9e9e' }, { label:'Quantity', data: bestSellers.map(b=> b.total_qty), type:'line', borderColor: blue, tension:0.35, yAxisID:'y1' }] }, options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, scales:{ x:{ ticks:{ display:false } }, y:{ beginAtZero:true }, y1:{ position:'right', grid:{ display:false }, beginAtZero:true } } } });
+
+  // Low Selling Products
+  cChart('miniLowSelling',{ type:'bar', data:{ labels: lowSelling.map(p=> (p.product_name||'').slice(0,12)), datasets:[{ label:'Units Sold', data: lowSelling.map(p=> p.total_qty), backgroundColor: '#ef6c00', borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ display:false } }, y:{ beginAtZero:true } } } });
+  const lowTable=document.getElementById('miniLowSellingTable');
+  if(lowTable){
+    lowTable.innerHTML = lowSelling.map(p=>`<tr class="border-b border-gray-50 hover:bg-gray-50"><td class="py-2 font-bold">${p.product_name}</td><td class="py-2">${p.total_qty}</td><td class="py-2">₱${Number(p.revenue).toLocaleString(undefined,{minimumFractionDigits:2})}</td><td class="py-2"><span class="px-2 py-0.5 rounded-full text-[10px] ${p.stock>20?'bg-green-100 text-green-700': p.stock>0?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700'}">${p.stock}</span></td></tr>`).join('');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{

@@ -35,8 +35,9 @@ class OrderController extends Controller
     {
         $userId = $request->session()->get('user_id');
         $order = Order::where('id',$id)->where('user_id',$userId)->firstOrFail();
-        if (!in_array($order->status, ['preparing','ready'])) {
-            return back()->with('error','Cannot cancel this order');
+        // Cancel allowed only while order is in Active status, not once Preparing
+        if ($order->status !== 'active') {
+            return back()->with('error','Cannot cancel this order – it is already being prepared or processed.');
         }
         $order->status = 'cancelled';
         $order->cancellation_reason = $request->input('reason');

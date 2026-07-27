@@ -8,22 +8,19 @@ class SupportController extends Controller
 {
     public function faq()
     {
-        // Exclude Account category per requirements
-        $faqs = Faq::whereRaw('LOWER(category) != ?', ['account'])
-            ->orderByDesc('created_at')
-            ->get();
+        // Show all FAQs, but exclude Account and General from category pills
+        // So General and Account questions remain accessible via All filter
+        $faqs = Faq::orderByDesc('created_at')->get();
         
         $categories = [];
         foreach ($faqs as $f) {
             $cat = $f->category ?: 'General';
-            if (strtolower($cat) === 'account') continue;
             $slug = strtolower($cat);
+            // Exclude Account and General from filter pills per requirements
+            if (in_array($slug, ['account','general'])) continue;
             if (!isset($categories[$slug])) {
                 $categories[$slug] = $cat;
             }
-        }
-        if (empty($categories)) {
-            $categories = ['general' => 'General'];
         }
 
         return view('support.faq', compact('faqs', 'categories'));

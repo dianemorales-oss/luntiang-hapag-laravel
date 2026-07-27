@@ -75,7 +75,16 @@ class CartController extends Controller
         if ($userId) {
             $query = ClaimedCoupon::where('user_id', $userId)->with('promotion');
             if (Schema::hasColumn('claimed_coupons', 'used_at')) $query->whereNull('used_at');
-            $claimedCoupons = $query->get()->map(fn($cc) => $cc->promotion)->filter();
+            if (Schema::hasColumn('claimed_coupons', 'expires_at')) {
+                $query->where(function($q){
+                    $q->whereNull('expires_at')->orWhere('expires_at','>', now());
+                });
+            }
+            $claimedCoupons = $query->get()->map(function($cc){
+                // Extra check for expired via promotion global expiry
+                if ($cc->promotion && $cc->promotion->expires_at && $cc->promotion->expires_at < now()->toDateString()) return null;
+                return $cc->promotion;
+            })->filter();
         }
 
         return view('cart.index', compact('cartItems','selectedSubtotal','deliveryFee','discount','total','isFreeDeliveryZone','claimedCoupons','promo','selectedCount','allSelected'));
@@ -197,6 +206,10 @@ class CartController extends Controller
         $claim = ClaimedCoupon::where('user_id',$userId)->where('promotion_id',$promo->id)->first();
         if (!$claim) return null;
         if (Schema::hasColumn('claimed_coupons', 'used_at') && !empty($claim->used_at)) return null;
+        // Check claimed coupon expiration (auto-remove if expired)
+        if (Schema::hasColumn('claimed_coupons', 'expires_at') && !empty($claim->expires_at) && \Carbon\Carbon::parse($claim->expires_at)->isPast()) {
+            return null;
+        }
         return $promo;
     }
 
