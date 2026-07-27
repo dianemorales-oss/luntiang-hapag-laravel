@@ -94,8 +94,8 @@ Route::post('/coupons/claim', function(\Illuminate\Http\Request $request){
 
 // Customer protected
 Route::middleware(['customer.auth'])->group(function(){
-    Route::get('/my-profile', [ProfileController::class, 'index'])->name('profile.index');
-    Route::get('/my-profile.php', [ProfileController::class, 'index']);
+    Route::match(['get', 'post'], '/my-profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::match(['get', 'post'], '/my-profile.php', [ProfileController::class, 'index']);
     Route::get('/edit-profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('/edit-profile.php', [ProfileController::class, 'edit']);
     Route::post('/edit-profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -161,7 +161,7 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/admin-orders.php', [App\Http\Controllers\Admin\OrderController::class, 'index']);
     Route::post('/orders/{id}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update');
 
-    Route::get('/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
+    Route::match(['get', 'post'], '/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('/admin-customers.php', [App\Http\Controllers\Admin\CustomerController::class, 'index']);
 
     Route::get('/tickets', [App\Http\Controllers\Admin\TicketController::class, 'index'])->name('tickets.index');
@@ -181,7 +181,7 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/admin-feedback.php', [App\Http\Controllers\Admin\FeedbackController::class, 'index']);
     Route::delete('/feedback/{id}', [App\Http\Controllers\Admin\FeedbackController::class, 'destroy'])->name('feedback.destroy');
 
-    Route::get('/reviews', [App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
+    Route::match(['get', 'post'], '/reviews', [App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
     Route::get('/admin-reviews.php', [App\Http\Controllers\Admin\ReviewController::class, 'index']);
     Route::put('/reviews/{id}', [App\Http\Controllers\Admin\ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{id}', [App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
@@ -205,10 +205,10 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/live-chat/{chatKey}', [App\Http\Controllers\Admin\LiveChatController::class, 'show'])->name('live-chat.show');
     Route::post('/live-chat/{chatKey}/send', [App\Http\Controllers\Admin\LiveChatController::class, 'send'])->name('live-chat.send');
     Route::get('/live-chat/{chatKey}/poll', [App\Http\Controllers\Admin\LiveChatController::class, 'poll'])->name('live-chat.poll');
-    Route::get('/live-chat/{chatKey}/delete', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation'])->name('live-chat.delete');
-    Route::get('/chat-delete.php', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation']);
-    Route::get('/chat-poll.php', [App\Http\Controllers\Admin\LiveChatController::class, 'poll']);
-    Route::post('/chat-send.php', [App\Http\Controllers\Admin\LiveChatController::class, 'send']);
+    Route::match(['get', 'post'], '/live-chat/{chatKey}/delete', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation'])->name('live-chat.delete');
+    Route::match(['get', 'post'], '/chat-delete.php', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation']);
+    Route::match(['get', 'post'], '/chat-poll.php', [App\Http\Controllers\Admin\LiveChatController::class, 'poll']);
+    Route::match(['get', 'post'], '/chat-send.php', [App\Http\Controllers\Admin\LiveChatController::class, 'send']);
 
     Route::get('/notifications', [App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications.php', [App\Http\Controllers\Admin\NotificationController::class, 'index']);

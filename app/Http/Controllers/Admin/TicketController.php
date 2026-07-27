@@ -3,20 +3,48 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\TicketReply;
-use App\Helpers\NotificationHelper;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tickets = Ticket::with('user')->orderByDesc('created_at')->get();
-        return view('admin.tickets.index', compact('tickets'));
+        $statusFilter = $request->get('status', 'all');
+        $search = trim($request->get('q', ''));
+
+        $query = Ticket::with('user');
+
+        if ($statusFilter !== 'all') {
+            $query->where('status', $statusFilter);
+        }
+
+        if ($search !== '') {
+            $query->where(function($q) use ($search) {
+                $q->where('subject', 'like', "%$search%")
+                  ->orWhere('category', 'like', "%$search%")
+                  ->orWhereHas('user', function($uq) use ($search) {
+                      $uq->where('first_name', 'like', "%$search%")
+                        ->orWhere('last_name', 'like', "%$search%")
+                        ->orWhere('email', 'like', "%$search%");
+                  });
+            });
+        }
+
+        $tickets = $query->orderByDesc('created_at')->get();
+
+        // Calculate counts
+        $statusCounts = [];
+        foreach (['open', 'in_progress', 'resolved', 'closed'] as $s) {
+            $statusCounts[$s] = Ticket::where('status', $s)->count();
+        }
+        $totalCount = Ticket::count();
+
+        return view('admin.tickets.index', compact('tickets', 'statusFilter', 'search', 'statusCounts', 'totalCount'));
     }
 
     public function show($id)
     {
-        $ticket = Ticket::with(['user','replies'])->findOrFail($id);
+        $ticket = Ticket::with(['user', 'replies'])->findOrFail($id);
         return view('admin.tickets.show', compact('ticket'));
     }
 

@@ -8,15 +8,68 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::with('category')->orderByDesc('created_at')->get();
-        $categories = Category::all();
-        return view('admin.products.index', compact('products','categories'));
+        $editId = (int)$request->get('edit', 0);
+        $editProduct = $editId ? Product::find($editId) : null;
+
+        // Retrieve sorted products
+        $products = Product::with('category')
+            ->orderByDesc('is_active')
+            ->orderByDesc('is_best_seller')
+            ->orderBy('name')
+            ->get();
+
+        $categories = Category::where('is_active', 1)->orderBy('sort_order')->get();
+
+        // Product Statistics
+        $plantsAvailableSum = Product::where('is_active', 1)->sum('plants_available');
+        $lowAvailability = Product::where('is_active', 1)->where('plants_available', '<=', 20)->where('plants_available', '>', 0)->count();
+        $outOfStock = Product::where('is_active', 1)->where('plants_available', 0)->count();
+        $activeCount = Product::where('is_active', 1)->count();
+
+        return view('admin.products.index', compact(
+            'products', 'categories', 'editProduct', 
+            'plantsAvailableSum', 'lowAvailability', 'outOfStock', 'activeCount'
+        ));
     }
 
     public function store(Request $request)
     {
+        // Supporting both store (add product) and edit/toggle action triggers via index POST
+        $action = $request->input('action', 'create');
+        $id = (int)$request->input('id', 0);
+
+        if ($action === 'update' && $id) {
+            $product = Product::findOrFail($id);
+            $product->name = $request->input('name');
+            $product->variety = $request->input('variety');
+            $product->description = $request->input('description');
+            $product->price = (float)$request->input('price');
+            $product->unit = $request->input('unit', 'per cup');
+            $product->plants_available = (int)$request->input('plants_available', 0);
+            $product->is_best_seller = $request->has('is_best_seller');
+            $product->is_new = $request->has('is_new');
+            $product->is_active = $request->has('is_active');
+            $product->calories = $request->input('calories') ? (int)$request->input('calories') : null;
+            $product->best_for = $request->input('best_for');
+            $product->shelf_life = $request->input('shelf_life');
+            $product->harvest_time = $request->input('harvest_time', '1-3 hours after order');
+            $product->storage_instructions = $request->input('storage_instructions');
+            $product->save();
+
+            return redirect()->route('admin.products.index')->with('success', 'Product updated.');
+        }
+
+        if ($action === 'toggle' && $id) {
+            $product = Product::findOrFail($id);
+            $product->is_active = !$product->is_active;
+            $product->save();
+
+            return redirect()->route('admin.products.index')->with('success', 'Product status toggled.');
+        }
+
+        // Standard Add Product
         $request->validate([
             'name'=>'required',
             'price'=>'required|numeric',
@@ -42,13 +95,14 @@ class ProductController extends Controller
             'description'=>$request->input('description'),
             'price'=>$request->input('price'),
             'unit'=>$request->input('unit','per cup'),
-            'image'=>$imagePath ?? $request->input('image'),
+            'image'=>$imagePath,
             'plants_available'=>$request->input('plants_available',0),
             'is_best_seller'=>$request->has('is_best_seller'),
+            'is_new'=>$request->has('is_new'),
             'is_active'=>true,
         ]);
 
-        return back()->with('success','Product created');
+        return redirect()->route('admin.products.index')->with('success','Product created.');
     }
 
     public function update(Request $request, $id)

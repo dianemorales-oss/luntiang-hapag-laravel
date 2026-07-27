@@ -8,8 +8,21 @@ class SupportController extends Controller
 {
     public function faq()
     {
-        $faqs = Faq::orderBy('category')->orderBy('created_at')->get()->groupBy('category');
-        return view('support.faq', compact('faqs'));
+        $faqs = Faq::orderByDesc('created_at')->get();
+        
+        $categories = [];
+        foreach ($faqs as $f) {
+            $cat = $f->category ?: 'General';
+            $slug = strtolower($cat);
+            if (!isset($categories[$slug])) {
+                $categories[$slug] = $cat;
+            }
+        }
+        if (empty($categories)) {
+            $categories = ['general' => 'General'];
+        }
+
+        return view('support.faq', compact('faqs', 'categories'));
     }
 
     public function about()
