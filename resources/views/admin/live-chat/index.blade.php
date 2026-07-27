@@ -140,6 +140,14 @@
     let currentChatKey = @json($activeChatKey);
     let messagePollInterval = null;
 
+    const adminSendUrlTemplate = @json(route('admin.live-chat.send', ['chatKey' => '__CHAT_KEY__']));
+    const adminPollUrlTemplate = @json(route('admin.live-chat.poll', ['chatKey' => '__CHAT_KEY__']));
+    const adminConversationPollUrl = @json(route('admin.live-chat.poll', ['chatKey' => '__conversations__']));
+
+    function adminChatUrl(template, chatKey) {
+      return template.replace('__CHAT_KEY__', encodeURIComponent(chatKey));
+    }
+
     function escapeHtml(str) {
       const div = document.createElement('div');
       div.textContent = str;
@@ -332,24 +340,24 @@
             formData.append('message', text || '');
             formData.append('chat_key', chatKeyInput.value);
             formData.append('chat_image', pendingAdminImage);
-            res = await fetch('{{ route('chat.send') }}', { 
-              method: 'POST', 
+            res = await fetch(adminChatUrl(adminSendUrlTemplate, chatKeyInput.value), {
+              method: 'POST',
               headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-              body: formData 
+              body: formData
             });
             pendingAdminImage = null;
             document.getElementById('adminImagePreviewContainer').classList.add('hidden');
             document.getElementById('adminChatImageInput').value = '';
           } else {
-            res = await fetch('{{ route('chat.send') }}', {
+            res = await fetch(adminChatUrl(adminSendUrlTemplate, chatKeyInput.value), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
               body: JSON.stringify({ chat_key: chatKeyInput.value, message: text })
             });
           }
           const data = await res.json();
-          if (data.ok && data.customerMessage) {
-            appendMessage(data.customerMessage);
+          if (data.success && data.message) {
+            appendMessage(data.message);
             input.value = '';
             updateCharCount();
             validationEl.textContent = '';
@@ -382,7 +390,7 @@
         if (polling) return;
         polling = true;
         try {
-          const res = await fetch('{{ route('chat.poll') }}?chat_key=' + encodeURIComponent(chatKeyInput.value) + '&last_id=' + lastId);
+          const res = await fetch(adminChatUrl(adminPollUrlTemplate, chatKeyInput.value) + '?after_id=' + lastId);
           const data = await res.json();
           if (data.messages && Array.isArray(data.messages)) {
             data.messages.forEach(appendMessage);
@@ -399,7 +407,7 @@
 
     async function refreshConversationList() {
       try {
-        const res = await fetch('{{ route('chat.poll') }}?action=conversations');
+        const res = await fetch(adminConversationPollUrl + '?action=conversations');
         const data = await res.json();
         if (!data.success || !Array.isArray(data.conversations)) return;
 
@@ -439,5 +447,3 @@
     setInterval(refreshConversationList, 6000);
   </script>
 @endpush
-
-@endsection

@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>body{font-family:'Nunito',sans-serif;background:#f4faf5}</style>
+  @stack('styles')
 </head>
 <body class="bg-[#f4faf5] text-[#1a2e1c] min-h-screen flex">
 
@@ -287,5 +288,6 @@
       }, 4000);
     });
   </script>
+  @stack('scripts')
 </body>
 </html>
