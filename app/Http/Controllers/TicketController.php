@@ -15,7 +15,9 @@ class TicketController extends Controller
         $formData = $request->session()->get('pending_ticket', [
             'subject'=>'','category'=>'','priority'=>'Medium','order_number'=>'','issue_description'=>''
         ]);
-        return view('tickets.create', compact('categories','priorities','formData'));
+        $userId = $request->session()->get('user_id');
+        $tickets = Ticket::where('user_id', $userId)->orderByDesc('created_at')->take(5)->get();
+        return view('tickets.create', compact('categories','priorities','formData','tickets'));
     }
 
     public function store(Request $request)

@@ -11,6 +11,43 @@
   </div>
 
   <div class="bg-white rounded-2xl border border-[rgba(27,94,32,0.10)] flex flex-col h-[70vh] shadow-sm overflow-hidden">
+    <!-- Conversation Modes: Talk to Assistant / Talk to Agent + Talk to Assistant Again -->
+    <div class="p-3 border-b border-[rgba(27,94,32,0.08)] bg-white flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-black tracking-widest text-[#5a7a5c] uppercase">Mode:</span>
+        <div class="flex items-center bg-[#f4faf5] rounded-full p-1 border">
+          <button id="modeAssistantBtn" class="mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-white border text-[#5a7a5c]' : 'bg-[#17611f] text-white shadow-sm' }}">🤖 Talk to Assistant</button>
+          <button id="modeAgentBtn" class="mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-[#17611f] text-white shadow-sm' : 'bg-white border text-[#5a7a5c]' }}">👤 Talk to Agent</button>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="modeStatus" class="text-[11px] font-bold px-2.5 py-1 rounded-full {{ ($isAgentMode ?? false) ? 'bg-amber-100 text-amber-700' : 'bg-[#e8f5e9] text-[#17611f]' }}">{{ ($isAgentMode ?? false) ? 'Agent Mode – AI paused' : 'Assistant Mode – Context-aware' }}</span>
+        <button id="modeAssistantAgainBtn" class="hidden px-3 py-1.5 rounded-full bg-[#e8f5e9] text-[#17611f] text-[11px] font-bold border border-[#c8e6c9] hover:bg-[#c8e6c9]">Talk to Assistant Again ↺</button>
+      </div>
+    </div>
+
+    <!-- Suggested Questions -->
+    <div class="p-3 border-b border-[rgba(27,94,32,0.06)] bg-[#f8fcf9]">
+      <p class="text-[11px] font-black tracking-widest text-[#5a7a5c] uppercase mb-2">💡 Suggested Questions – Click to ask instantly</p>
+      <div class="flex flex-wrap gap-1.5" id="suggestedQuestions">
+        @foreach(($suggestedQuestions ?? []) as $q)
+          <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border border-[rgba(27,94,32,0.12)] text-xs font-semibold text-[#1a2e1c] hover:bg-[#e8f5e9] hover:border-[#17611f]/30 hover:text-[#17611f] transition-all" data-message="{{ $q['message'] }}">{{ $q['label'] }}</button>
+        @endforeach
+        <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border border-[rgba(27,94,32,0.12)] text-xs font-semibold text-[#1a2e1c] hover:bg-[#e8f5e9] text-[#17611f]" data-message="What is a support ticket?">What is a support ticket?</button>
+        <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border text-xs font-semibold text-[#5a7a5c] hover:bg-[#e8f5e9]" data-message="How do I track my order?">How do I track my order?</button>
+      </div>
+      @if(!empty($moreQuestions))
+        <details class="mt-2">
+          <summary class="text-[11px] font-bold text-[#17611f] cursor-pointer hover:underline">More questions...</summary>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            @foreach($moreQuestions as $q)
+              <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border border-[rgba(27,94,32,0.10)] text-[11px] font-medium text-[#5a7a5c] hover:bg-[#e8f5e9] hover:text-[#17611f]" data-message="{{ $q['message'] }}">{{ $q['label'] }}</button>
+            @endforeach
+          </div>
+        </details>
+      @endif
+    </div>
+
     <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8fcf9]">
       @foreach($messages as $msg)
         @php
@@ -232,6 +269,69 @@
     }
   });
 
+  // Suggested Questions - click to instantly ask
+  document.querySelectorAll('.suggested-q').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      const msg = this.dataset.message;
+      if(!msg) return;
+      document.getElementById('messageInput').value = msg;
+      // Auto send
+      document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+    });
+  });
+
+  // Conversation Modes - Talk to Assistant / Talk to Agent / Talk to Assistant Again
+  const modeAssistantBtn = document.getElementById('modeAssistantBtn');
+  const modeAgentBtn = document.getElementById('modeAgentBtn');
+  const modeStatus = document.getElementById('modeStatus');
+  const modeAgainBtn = document.getElementById('modeAssistantAgainBtn');
+  const modeUrl = @json(route('chat.mode'));
+
+  function updateModeUI(isAgent){
+    if(isAgent){
+      modeAssistantBtn.className='mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-white border text-[#5a7a5c]';
+      modeAgentBtn.className='mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-[#17611f] text-white shadow-sm';
+      modeStatus.textContent='Agent Mode – AI paused, only agent replies';
+      modeStatus.className='text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700';
+      modeAgainBtn.classList.remove('hidden');
+    } else {
+      modeAssistantBtn.className='mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-[#17611f] text-white shadow-sm';
+      modeAgentBtn.className='mode-btn px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-white border text-[#5a7a5c]';
+      modeStatus.textContent='Assistant Mode – Context-aware, remembers history';
+      modeStatus.className='text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#e8f5e9] text-[#17611f]';
+      modeAgainBtn.classList.add('hidden');
+    }
+  }
+
+  async function switchMode(mode){
+    try{
+      const formData = new FormData();
+      formData.append('mode', mode);
+      formData.append('gk', isLoggedIn ? '' : (sessionStorage.getItem('guest_chat_key') || chatKey));
+      const res = await fetch(modeUrl, { method:'POST', body: formData, headers:{ 'X-CSRF-TOKEN': csrfToken } });
+      const data = await res.json();
+      if(data.ok){
+        updateModeUI(mode==='agent');
+        // Poll immediately to get system message
+        setTimeout(poll, 500);
+        if(mode==='agent' && typeof showCenterToast==='function'){
+          showCenterToast('Switched to Agent – AI paused, agent will reply shortly','success');
+        } else if(mode==='assistant' && typeof showCenterToast==='function'){
+          showCenterToast('Back to Assistant – context restored','success');
+        }
+      }
+    }catch(e){ console.error(e); }
+  }
+
+  if(modeAssistantBtn) modeAssistantBtn.addEventListener('click', ()=> switchMode('assistant'));
+  if(modeAgentBtn) modeAgentBtn.addEventListener('click', ()=> switchMode('agent'));
+  if(modeAgainBtn) modeAgainBtn.addEventListener('click', ()=> switchMode('assistant'));
+
+  // Initialize mode UI from server
+  let initialAgentMode = {{ ($isAgentMode ?? false) ? 'true' : 'false' }};
+  updateModeUI(initialAgentMode);
+  if(initialAgentMode) modeAgainBtn.classList.remove('hidden');
+
   async function poll(){
     try {
       const gk = isLoggedIn ? '' : (sessionStorage.getItem('guest_chat_key') || chatKey);
@@ -244,9 +344,16 @@
           const ownCustomerMessage = m.sender === 'customer' && (isLoggedIn ? Number(m.user_id) === Number(userId) : m.customer_name === customerName);
           if(!ownCustomerMessage){
             appendMessage(m);
+            // If agent replied, ensure UI shows agent mode
+            if(m.sender==='admin' && !m.customer_name.includes('Assistant')){
+              // Agent replied, keep agent mode indicator
+              // Don't auto switch, but show notification
+            }
           }
         });
       }
+      // Also check bot state to update UI if admin switched via backend
+      // Could poll separate endpoint, but we use chat state inferred
     } catch(err) {
       // retry silently
     }

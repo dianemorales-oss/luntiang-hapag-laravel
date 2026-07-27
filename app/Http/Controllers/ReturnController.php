@@ -104,7 +104,7 @@ class ReturnController extends Controller
         if (!in_array($reason_category, $reasons, true)) return back()->with('error','Invalid reason')->withInput();
         if (!in_array($product_condition, $conditions, true)) return back()->with('error','Invalid condition')->withInput();
 
-        $proofUpload = FormHelper::handleUpload($request->file('proof_of_purchase'), ['jpg','jpeg','png','pdf'], storage_path('app/public/returns'), 'uploads/returns', true);
+        $proofUpload = FormHelper::handleUpload($request->file('proof_of_purchase'), ['jpg','jpeg','png','pdf'], storage_path('app/public/returns'), 'uploads/returns', false);
         if (!$proofUpload['ok']) return back()->with('error',$proofUpload['error'])->withInput();
         $damageUpload = FormHelper::handleUpload($request->file('damage_photo'), ['jpg','jpeg','png'], storage_path('app/public/returns'), 'uploads/returns', false);
         if (!$damageUpload['ok']) return back()->with('error',$damageUpload['error'])->withInput();

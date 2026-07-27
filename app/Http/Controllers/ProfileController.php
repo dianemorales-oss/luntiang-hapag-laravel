@@ -119,11 +119,64 @@ class ProfileController extends Controller
         $tickets = Ticket::where('user_id', $userId)->orderByDesc('created_at')->get();
         $warranty = WarrantyRequest::where('user_id', $userId)->orderByDesc('created_at')->get();
         $returns = ReturnRequest::where('user_id', $userId)->orderByDesc('created_at')->get();
+        $feedbacks = Feedback::where('user_id', $userId)->orderByDesc('created_at')->get();
+
+        // Unified Support Requests Summary: Tickets + Return & Refund + Feedback
+        $supportHistory = collect();
+
+        foreach ($tickets as $t) {
+            $supportHistory->push([
+                'type' => 'Submit Ticket',
+                'type_color' => 'bg-[#e8f5e9] text-[#17611f]',
+                'id' => 'T-'.str_pad($t->id,4,'0',STR_PAD_LEFT),
+                'raw_id' => $t->id,
+                'subject' => $t->subject,
+                'category' => $t->category,
+                'date_submitted' => $t->created_at,
+                'status' => $t->status,
+                'last_updated' => $t->updated_at,
+                'link' => route('tickets.show', ['id'=>$t->id]),
+                'link_text' => 'View Details',
+            ]);
+        }
+        foreach ($returns as $ret) {
+            $supportHistory->push([
+                'type' => 'Return & Refund',
+                'type_color' => 'bg-orange-50 text-orange-700 border-orange-100',
+                'id' => 'R-'.str_pad($ret->id,4,'0',STR_PAD_LEFT),
+                'raw_id' => $ret->id,
+                'subject' => $ret->product_name ?: $ret->order_number,
+                'category' => $ret->reason_category ?: 'Return',
+                'date_submitted' => $ret->created_at,
+                'status' => $ret->status,
+                'last_updated' => $ret->updated_at,
+                'link' => route('returns.index'),
+                'link_text' => 'View Details',
+            ]);
+        }
+        foreach ($feedbacks as $fb) {
+            $supportHistory->push([
+                'type' => 'Feedback',
+                'type_color' => 'bg-purple-50 text-purple-700 border-purple-100',
+                'id' => 'F-'.str_pad($fb->id,4,'0',STR_PAD_LEFT),
+                'raw_id' => $fb->id,
+                'subject' => $fb->subject ?: 'Rating: '.$fb->rating.' stars',
+                'category' => 'Feedback - '.$fb->rating.'★',
+                'date_submitted' => $fb->created_at,
+                'status' => 'submitted',
+                'last_updated' => $fb->updated_at,
+                'link' => route('feedback'),
+                'link_text' => 'View Details',
+            ]);
+        }
+
+        // Sort by date submitted desc
+        $supportHistory = $supportHistory->sortByDesc('date_submitted')->values();
 
         return view('profile.index', compact(
             'user', 'section', 'orderStats', 'totalOrders', 'activeOrder', 'activeItems',
             'orderTab', 'allOrders', 'openTickets', 'pendingReturns', 'addresses', 'coupons',
-            'tickets', 'warranty', 'returns'
+            'tickets', 'warranty', 'returns', 'feedbacks', 'supportHistory'
         ));
     }
 

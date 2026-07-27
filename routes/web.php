@@ -168,6 +168,8 @@ Route::post('/chat-send', [ChatController::class, 'send'])->name('chat.send');
 Route::post('/chat-send.php', [ChatController::class, 'send']);
 Route::get('/chat-poll', [ChatController::class, 'poll'])->name('chat.poll');
 Route::get('/chat-poll.php', [ChatController::class, 'poll']);
+Route::post('/chat-mode', [ChatController::class, 'switchMode'])->name('chat.mode');
+Route::post('/chat-mode.php', [ChatController::class, 'switchMode']);
 
 // Admin routes
 Route::get('/admin/login', [App\Http\Controllers\Admin\AuthController::class, 'showLogin'])->name('admin.login');
@@ -181,6 +183,9 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/', function(){ return redirect()->route('admin.dashboard'); });
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/admin-dashboard.php', [App\Http\Controllers\Admin\DashboardController::class, 'index']);
+
+    Route::get('/profile', [App\Http\Controllers\Admin\AuthController::class, 'showProfile'])->name('profile');
+    Route::post('/profile', [App\Http\Controllers\Admin\AuthController::class, 'updateProfile'])->name('profile.update');
 
     Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products.index');
     Route::get('/admin-products.php', [App\Http\Controllers\Admin\ProductController::class, 'index']);

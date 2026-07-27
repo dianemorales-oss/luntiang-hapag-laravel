@@ -160,6 +160,15 @@
           <span class="flex-1">FAQ</span>
         </a>
       </div>
+
+      <p class="px-6 text-[11px] tracking-[0.15em] text-[#5a7a5c] font-semibold mb-2 mt-4">ACCOUNT</p>
+      <div class="space-y-1 mb-2">
+        @php $adminProfileActive = ($routeUri === 'admin.profile'); @endphp
+        <a href="{{ route('admin.profile') }}" class="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl text-sm {{ $adminProfileActive ? 'bg-[#17611f] text-white font-semibold' : 'text-gray-300 hover:bg-[#14521a] hover:text-white transition-colors font-medium' }}">
+          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          <span class="flex-1">My Profile</span>
+        </a>
+      </div>
     </nav>
 
     <!-- Sidebar footer logout / profile links -->
@@ -234,14 +243,19 @@
           </div>
         </div>
 
-        <!-- Admin Profile Info -->
-        <div class="flex items-center gap-2.5 pl-3 border-l border-[rgba(27,94,32,0.12)]">
-          <div class="w-9 h-9 rounded-full bg-[#17611f] text-white text-xs font-semibold flex items-center justify-center">{{ $initials }}</div>
+        <!-- Admin Profile Info with Picture -->
+        @php $adminPicture = session('admin_picture'); @endphp
+        <a href="{{ route('admin.profile') }}" class="flex items-center gap-2.5 pl-3 border-l border-[rgba(27,94,32,0.12)] hover:bg-[#f4faf5] rounded-xl px-2 py-1 transition-colors">
+          @if($adminPicture)
+            <img src="{{ asset($adminPicture) }}" alt="Admin" class="w-9 h-9 rounded-full object-cover border border-[rgba(27,94,32,0.12)]">
+          @else
+            <div class="w-9 h-9 rounded-full bg-[#17611f] text-white text-xs font-semibold flex items-center justify-center">{{ $initials }}</div>
+          @endif
           <div class="leading-tight text-left">
             <p class="text-sm font-semibold text-[#1a2e1c]">{{ $adminName }}</p>
             <p class="text-[11px] text-[#9e9e9e]">{{ $adminRole }}</p>
           </div>
-        </div>
+        </a>
       </div>
     </header>
 

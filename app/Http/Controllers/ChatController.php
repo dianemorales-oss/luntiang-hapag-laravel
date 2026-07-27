@@ -65,7 +65,59 @@ class ChatController extends Controller
             $messages = LiveChatMessage::where('chat_key', $chatKey)->orderBy('id')->get();
         }
 
-        return view('chat.live', compact('chatKey','customerName','messages','userId'));
+        // Load suggested questions from knowledge base
+        $kbPath = app_path('Services/chatbot-knowledge.php');
+        $kb = file_exists($kbPath) ? require $kbPath : ['quick_actions'=>[]];
+        $suggestedQuestions = $kb['quick_actions']['primary'] ?? [
+            ['label'=>'What products do you have?', 'message'=>'What products do you have?'],
+            ['label'=>'How does delivery work?', 'message'=>'How does delivery work?'],
+            ['label'=>'How fresh is the lettuce?', 'message'=>'How fresh is the lettuce?'],
+            ['label'=>'What is a support ticket?', 'message'=>'What is a support ticket?'],
+        ];
+        $moreQuestions = $kb['quick_actions']['more'] ?? [];
+
+        // Check current bot state for mode
+        $botState = ChatBotState::where('chat_key', $chatKey)->first();
+        $isAgentMode = $botState ? !$botState->bot_active : false;
+
+        return view('chat.live', compact('chatKey','customerName','messages','userId','suggestedQuestions','moreQuestions','isAgentMode'));
+    }
+
+    public function switchMode(Request $request)
+    {
+        $chatKey = $request->input('gk') ?? $request->get('gk') ?? $this->getChatKey($request);
+        if ($request->session()->has('user_id')) {
+            $chatKey = 'user-' . $request->session()->get('user_id');
+        }
+        $mode = $request->input('mode','assistant'); // assistant or agent
+
+        if ($mode === 'agent') {
+            ChatBotState::updateOrCreate(
+                ['chat_key' => $chatKey],
+                ['bot_active' => false, 'pending_intent' => null, 'pending_context' => null]
+            );
+            LiveChatMessage::create([
+                'chat_key' => $chatKey,
+                'user_id' => null,
+                'customer_name' => 'System',
+                'sender' => 'admin',
+                'message' => 'You are now connected to a live agent. The AI assistant has been paused. An agent will be with you shortly. You can switch back to assistant anytime via "Talk to Assistant Again".',
+            ]);
+        } else {
+            ChatBotState::updateOrCreate(
+                ['chat_key' => $chatKey],
+                ['bot_active' => true, 'pending_intent' => null, 'pending_context' => null]
+            );
+            LiveChatMessage::create([
+                'chat_key' => $chatKey,
+                'user_id' => null,
+                'customer_name' => 'Luntiang H.A.P.A.G. Assistant',
+                'sender' => 'admin',
+                'message' => ChatbotEngine::greeting() . "\n\nI'm back! Assistant mode restored with full conversation context maintained. How can I help?",
+            ]);
+        }
+
+        return response()->json(['ok'=>true, 'mode'=>$mode, 'chatKey'=>$chatKey]);
     }
 
     public function send(Request $request)

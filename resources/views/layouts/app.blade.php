@@ -93,7 +93,7 @@
     @yield('content')
   </main>
 
-  @if(!request()->routeIs('profile.index'))
+  @if(!request()->routeIs('profile.*') && !request()->routeIs('customer.notifications.*'))
   <footer class="mt-16 bg-[#17611f] px-6 pb-8 pt-14 text-white">
     <div class="mx-auto grid max-w-7xl gap-10 sm:grid-cols-3">
       <div>

@@ -46,8 +46,8 @@
       <div><label class="text-sm font-medium">Reason for Return</label><select name="reason_category" required class="w-full rounded-xl border px-4 py-3 text-sm mt-1">@foreach($reasons as $r)<option value="{{ $r }}" {{ $formData['reason_category']===$r?'selected':'' }}>{{ $r }}</option>@endforeach</select></div>
       <div><label class="text-sm font-medium">Detailed Explanation</label><textarea name="reason" required rows="4" class="w-full rounded-xl border px-4 py-3 text-sm mt-1">{{ $formData['reason'] }}</textarea></div>
       <div><label class="text-sm font-medium">Product Condition</label><select name="product_condition" required class="w-full rounded-xl border px-4 py-3 text-sm mt-1">@foreach($conditions as $c)<option value="{{ $c }}" {{ $formData['product_condition']===$c?'selected':'' }}>{{ $c }}</option>@endforeach</select></div>
-      <div><label class="text-sm font-medium">Proof of Purchase</label><input type="file" name="proof_of_purchase[]" required multiple accept=".jpg,.jpeg,.png,.pdf" class="w-full border rounded-xl p-2 text-sm mt-1"></div>
-      <div><label class="text-sm font-medium">Damage Photo (optional)</label><input type="file" name="damage_photo[]" multiple accept=".jpg,.jpeg,.png" class="w-full border rounded-xl p-2 text-sm mt-1"></div>
+      <div><label class="text-sm font-medium">Proof of Purchase <span class="text-[#9e9e9e] font-normal">(optional)</span></label><input type="file" name="proof_of_purchase[]" multiple accept=".jpg,.jpeg,.png,.pdf" class="w-full border rounded-xl p-2 text-sm mt-1"><p class="text-[11px] text-[#9e9e9e] mt-1">Optional – you can submit without files. Max 5MB total if attached.</p></div>
+      <div><label class="text-sm font-medium">Damage Photo <span class="text-[#9e9e9e] font-normal">(optional)</span></label><input type="file" name="damage_photo[]" multiple accept=".jpg,.jpeg,.png" class="w-full border rounded-xl p-2 text-sm mt-1"><p class="text-[11px] text-[#9e9e9e] mt-1">Optional – attach photos to help us process faster.</p></div>
       <button type="submit" class="w-full py-3 rounded-xl bg-[#17611f] text-white font-bold">Submit Return Request</button>
     </form>
     @endif

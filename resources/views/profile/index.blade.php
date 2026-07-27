@@ -60,7 +60,7 @@
       @endforeach
     </div>
 
-    <div class="grid lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid lg:grid-cols-2 gap-6">
       <div class="bg-white rounded-xl border p-6">
         <h2 class="font-black text-lg mb-4">Current Order</h2>
         @if ($activeOrder)
@@ -97,61 +97,10 @@
         </div>
         <div class="space-y-2">
           <a href="{{ route('tickets.create') }}" class="block text-center py-2 rounded-xl bg-[#17611f] text-white text-sm font-bold hover:bg-[#14521a]">Submit Ticket</a>
+          <a href="?section=support" class="block text-center py-2 rounded-xl border text-sm font-bold hover:bg-[#e8f5e9]">View Support History</a>
           <a href="{{ route('chat.index') }}" class="block text-center py-2 rounded-xl border text-sm font-bold hover:bg-[#e8f5e9]">Live Chat</a>
         </div>
       </div>
-    </div>
-
-    {{-- Support Requests Summary - New Section --}}
-    <div class="bg-white rounded-2xl border border-[rgba(27,94,32,0.08)] p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-5">
-        <div>
-          <h2 class="font-black text-lg flex items-center gap-2">🎫 Support Requests Summary</h2>
-          <p class="text-xs text-[#5a7a5c] mt-0.5">Your recent support tickets and their current status</p>
-        </div>
-        <a href="?section=support" class="text-xs font-bold text-[#17611f] hover:underline">View All →</a>
-      </div>
-
-      @if($tickets->isEmpty())
-        <div class="text-center py-10 bg-[#f4faf5] rounded-xl">
-          <p class="text-3xl mb-2">📭</p>
-          <p class="text-sm font-bold text-[#5a7a5c]">No support requests yet</p>
-          <p class="text-xs text-[#9e9e9e] mt-1">Submit a ticket when you need help with orders, delivery, or products</p>
-          <a href="{{ route('tickets.create') }}" class="inline-block mt-3 px-4 py-1.5 rounded-full bg-[#17611f] text-white text-xs font-bold hover:bg-[#14521a]">Submit Ticket</a>
-        </div>
-      @else
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-[11px] uppercase tracking-wider text-[#5a7a5c] border-b border-[rgba(27,94,32,0.08)]">
-                <th class="text-left py-2.5 px-2 font-bold">Ticket ID</th>
-                <th class="text-left py-2.5 px-2 font-bold">Subject</th>
-                <th class="text-left py-2.5 px-2 font-bold">Category</th>
-                <th class="text-left py-2.5 px-2 font-bold">Date Submitted</th>
-                <th class="text-left py-2.5 px-2 font-bold">Status</th>
-                <th class="text-left py-2.5 px-2 font-bold">Last Updated</th>
-                <th class="text-right py-2.5 px-2 font-bold">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[rgba(27,94,32,0.05)]">
-              @foreach($tickets->take(5) as $t)
-                <tr class="hover:bg-[#f4faf5]/70 transition-colors">
-                  <td class="py-3 px-2 font-mono font-bold text-xs">#{{ $t->id }}</td>
-                  <td class="py-3 px-2 font-semibold truncate max-w-[180px]">{{ \Str::limit($t->subject, 30) }}</td>
-                  <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e8f5e9] text-[#17611f]">{{ $t->category }}</span></td>
-                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $t->created_at->format('M j, Y g:i A') }}</td>
-                  <td class="py-3 px-2"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $ticketStatusColors[$t->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_',' ',$t->status)) }}</span></td>
-                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $t->updated_at->diffForHumans() }}</td>
-                  <td class="py-3 px-2 text-right"><a href="{{ route('tickets.show',['id'=>$t->id]) }}" class="inline-flex px-3 py-1 rounded-full bg-[#17611f] text-white text-[11px] font-bold hover:bg-[#14521a]">View Details</a></td>
-                </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-        @if($tickets->count() > 5)
-          <div class="text-center mt-4"><a href="?section=support" class="text-xs font-bold text-[#17611f] hover:underline">{{ $tickets->count() - 5 }} more tickets • View all →</a></div>
-        @endif
-      @endif
     </div>
 
   @elseif ($section === 'orders')
@@ -333,48 +282,68 @@
       </a>
     </div>
 
-    {{-- Support Requests Summary Table --}}
+    {{-- Support Requests Summary Table - All support-related submissions --}}
     <div class="bg-white rounded-2xl border border-[rgba(27,94,32,0.08)] p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-5">
-        <h3 class="font-black text-base flex items-center gap-2">📋 Support Requests Summary</h3>
-        <span class="text-xs bg-[#f4faf5] px-2.5 py-1 rounded-full font-bold text-[#5a7a5c]">{{ $tickets->count() }} total</span>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="font-black text-base flex items-center gap-2">📋 Support Requests Summary</h3>
+          <p class="text-xs text-[#5a7a5c] mt-0.5">All support submissions: Tickets, Returns & Refunds, Feedback</p>
+        </div>
+        <span class="text-xs bg-[#f4faf5] px-2.5 py-1 rounded-full font-bold text-[#5a7a5c]">{{ $supportHistory->count() }} total</span>
       </div>
 
-      @if($tickets->isEmpty())
+      {{-- Filter Options --}}
+      <div class="flex flex-wrap gap-1.5 mb-5 pb-3 border-b border-[rgba(27,94,32,0.06)]">
+        <button data-filter="all" class="support-filter-btn active px-4 py-1.5 rounded-full text-xs font-bold bg-[#17611f] text-white shadow-sm">All</button>
+        <button data-filter="Submit Ticket" class="support-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white border text-[#5a7a5c] hover:bg-[#e8f5e9]">Submit Ticket</button>
+        <button data-filter="Return & Refund" class="support-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white border text-[#5a7a5c] hover:bg-[#e8f5e9]">Return & Refund</button>
+        <button data-filter="Feedback" class="support-filter-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white border text-[#5a7a5c] hover:bg-[#e8f5e9]">Feedback</button>
+      </div>
+
+      @if($supportHistory->isEmpty())
         <div class="text-center py-12 bg-[#f4faf5] rounded-xl">
           <p class="text-3xl mb-2">📭</p>
           <p class="text-sm font-bold text-[#5a7a5c]">No support requests yet</p>
-          <p class="text-xs text-[#9e9e9e] mt-1 max-w-sm mx-auto">When you submit a support ticket, it will appear here with status tracking.</p>
+          <p class="text-xs text-[#9e9e9e] mt-1 max-w-sm mx-auto">When you submit a support ticket, return request, or feedback, it will appear here with complete history and status tracking.</p>
+          <div class="flex justify-center gap-2 mt-4">
+            <a href="{{ route('tickets.create') }}" class="px-4 py-1.5 rounded-full bg-[#17611f] text-white text-xs font-bold hover:bg-[#14521a]">Submit Ticket</a>
+            <a href="{{ route('returns.index') }}" class="px-4 py-1.5 rounded-full border text-xs font-bold hover:bg-[#e8f5e9]">Return & Refund</a>
+            <a href="{{ route('feedback') }}" class="px-4 py-1.5 rounded-full border text-xs font-bold hover:bg-[#e8f5e9]">Feedback</a>
+          </div>
         </div>
       @else
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="text-[11px] uppercase tracking-wider text-[#5a7a5c] border-b">
-                <th class="text-left py-2.5 px-2 font-bold">Ticket ID</th>
+                <th class="text-left py-2.5 px-2 font-bold">ID</th>
+                <th class="text-left py-2.5 px-2 font-bold">Type</th>
                 <th class="text-left py-2.5 px-2 font-bold">Subject</th>
                 <th class="text-left py-2.5 px-2 font-bold">Category</th>
                 <th class="text-left py-2.5 px-2 font-bold">Date Submitted</th>
-                <th class="text-left py-2.5 px-2 font-bold">Status</th>
+                <th class="text-left py-2.5 px-2 font-bold">Current Status</th>
                 <th class="text-left py-2.5 px-2 font-bold">Last Updated</th>
                 <th class="text-right py-2.5 px-2 font-bold">Action</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[rgba(27,94,32,0.05)]">
-              @foreach($tickets as $t)
-                <tr class="hover:bg-[#f4faf5]/70 transition-colors">
-                  <td class="py-3 px-2 font-mono font-bold text-xs">#{{ $t->id }}</td>
-                  <td class="py-3 px-2 font-semibold truncate max-w-[200px]">{{ \Str::limit($t->subject, 35) }}</td>
-                  <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e8f5e9] text-[#17611f]">{{ $t->category }}</span></td>
-                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $t->created_at->format('M j, Y') }}<br><span class="text-[10px] text-[#9e9e9e]">{{ $t->created_at->format('g:i A') }}</span></td>
-                  <td class="py-3 px-2"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $ticketStatusColors[$t->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_',' ',$t->status)) }}</span></td>
-                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $t->updated_at->diffForHumans() }}<br><span class="text-[10px] text-[#9e9e9e]">{{ $t->updated_at->format('M j, g:i A') }}</span></td>
-                  <td class="py-3 px-2 text-right"><a href="{{ route('tickets.show',['id'=>$t->id]) }}" class="inline-flex px-3 py-1.5 rounded-full bg-[#17611f] text-white text-[11px] font-bold hover:bg-[#14521a] transition-colors">View Details</a></td>
+            <tbody id="supportHistoryBody" class="divide-y divide-[rgba(27,94,32,0.05)]">
+              @foreach($supportHistory as $item)
+                <tr class="support-row hover:bg-[#f4faf5]/70 transition-colors" data-type="{{ $item['type'] }}">
+                  <td class="py-3 px-2 font-mono font-bold text-xs">{{ $item['id'] }}</td>
+                  <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $item['type_color'] }}">{{ $item['type'] }}</span></td>
+                  <td class="py-3 px-2 font-semibold truncate max-w-[180px]">{{ \Str::limit($item['subject'], 30) }}</td>
+                  <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#e8f5e9] text-[#17611f]">{{ $item['category'] }}</span></td>
+                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $item['date_submitted']->format('M j, Y') }}<br><span class="text-[10px] text-[#9e9e9e]">{{ $item['date_submitted']->format('g:i A') }}</span></td>
+                  <td class="py-3 px-2"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold {{ $ticketStatusColors[$item['status']] ?? ($item['status']==='submitted' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600') }}">{{ ucfirst(str_replace('_',' ',$item['status'])) }}</span></td>
+                  <td class="py-3 px-2 text-xs text-[#5a7a5c]">{{ $item['last_updated']->diffForHumans() }}<br><span class="text-[10px] text-[#9e9e9e]">{{ $item['last_updated']->format('M j, g:i A') }}</span></td>
+                  <td class="py-3 px-2 text-right"><a href="{{ $item['link'] }}" class="inline-flex px-3 py-1.5 rounded-full bg-[#17611f] text-white text-[11px] font-bold hover:bg-[#14521a] transition-colors">{{ $item['link_text'] }}</a></td>
                 </tr>
               @endforeach
             </tbody>
           </table>
         </div>
+        <p id="noSupportFiltered" class="hidden text-center py-8 text-sm text-[#5a7a5c] bg-[#f4faf5] rounded-xl mt-4">No requests match this filter.</p>
+        <p class="text-[11px] text-[#9e9e9e] mt-4 text-center">Showing <span id="supportVisibleCount">{{ $supportHistory->count() }}</span> of {{ $supportHistory->count() }} support-related submissions – filtered without reload.</p>
       @endif
     </div>
 
@@ -403,24 +372,24 @@ document.addEventListener('DOMContentLoaded', function(){
   const searchInput = document.getElementById('orderSearchInput');
   const ordersList = document.getElementById('ordersList');
   const noFound = document.getElementById('noOrdersFound');
-  if(!searchInput || !ordersList) return;
-
-  searchInput.addEventListener('input', function(){
-    const term = this.value.toLowerCase().trim();
-    const cards = ordersList.querySelectorAll('.order-card');
-    let visibleCount = 0;
-    cards.forEach(card=>{
-      const orderId = (card.dataset.orderId||'').toLowerCase();
-      const status = (card.dataset.status||'').toLowerCase();
-      const date = (card.dataset.date||'').toLowerCase();
-      const products = (card.dataset.products||'').toLowerCase();
-      const text = card.textContent.toLowerCase();
-      const match = term==='' || orderId.includes(term) || status.includes(term) || date.includes(term) || products.includes(term) || text.includes(term);
-      card.style.display = match ? '' : 'none';
-      if(match) visibleCount++;
+  if(searchInput && ordersList){
+    searchInput.addEventListener('input', function(){
+      const term = this.value.toLowerCase().trim();
+      const cards = ordersList.querySelectorAll('.order-card');
+      let visibleCount = 0;
+      cards.forEach(card=>{
+        const orderId = (card.dataset.orderId||'').toLowerCase();
+        const status = (card.dataset.status||'').toLowerCase();
+        const date = (card.dataset.date||'').toLowerCase();
+        const products = (card.dataset.products||'').toLowerCase();
+        const text = card.textContent.toLowerCase();
+        const match = term==='' || orderId.includes(term) || status.includes(term) || date.includes(term) || products.includes(term) || text.includes(term);
+        card.style.display = match ? '' : 'none';
+        if(match) visibleCount++;
+      });
+      if(noFound) noFound.classList.toggle('hidden', visibleCount!==0 || term==='');
     });
-    if(noFound) noFound.classList.toggle('hidden', visibleCount!==0 || term==='');
-  });
+  }
 
   // Track toggle - expand selected order row
   document.querySelectorAll('.track-toggle-btn').forEach(btn=>{
@@ -429,9 +398,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const detail = document.getElementById('track-detail-'+orderNum);
       if(!detail) return;
       const isHidden = detail.classList.contains('hidden');
-      // Close all other details
       document.querySelectorAll('[id^="track-detail-"]').forEach(d=>{ if(d!==detail) d.classList.add('hidden'); });
-      // Update all buttons text
       document.querySelectorAll('.track-toggle-btn').forEach(b=>{ if(b!==this) b.textContent='📍 Track'; });
       if(isHidden){
         detail.classList.remove('hidden');
@@ -443,6 +410,34 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     });
   });
+
+  // Support Requests Summary Filter - All, Submit Ticket, Return & Refund, Feedback without reload
+  const filterBtns = document.querySelectorAll('.support-filter-btn');
+  const rows = document.querySelectorAll('.support-row');
+  const noFiltered = document.getElementById('noSupportFiltered');
+  const visibleCountEl = document.getElementById('supportVisibleCount');
+  if(filterBtns.length && rows.length){
+    filterBtns.forEach(btn=>{
+      btn.addEventListener('click', function(){
+        const filter = this.dataset.filter;
+        filterBtns.forEach(b=>{
+          b.classList.remove('active','bg-[#17611f]','text-white','shadow-sm');
+          b.classList.add('bg-white','border','text-[#5a7a5c]');
+        });
+        this.classList.add('active','bg-[#17611f]','text-white','shadow-sm');
+        this.classList.remove('bg-white','border','text-[#5a7a5c]');
+        let visible=0;
+        rows.forEach(row=>{
+          const type = row.dataset.type;
+          const match = filter==='all' || type===filter;
+          row.style.display = match ? '' : 'none';
+          if(match) visible++;
+        });
+        if(noFiltered) noFiltered.classList.toggle('hidden', visible!==0);
+        if(visibleCountEl) visibleCountEl.textContent = visible;
+      });
+    });
+  }
 });
 </script>
 @endpush
