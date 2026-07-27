@@ -63,8 +63,8 @@
         <div id="chatThread" class="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 bg-gray-50/50" data-chat-key="{{ $activeChatKey }}" data-last-id="{{ $activeLastId }}">
           @foreach ($activeMessages as $m)
             @php
-              $isAdmin = $m->sender === 'admin';
-              $isBot = $m->sender === 'bot';
+              $isBot = $m->sender === 'bot' || str_contains($m->customer_name ?? '', 'Assistant');
+              $isAdmin = $m->sender === 'admin' && !$isBot;
               $label = $isAdmin ? 'You' : ($isBot ? 'Luntiang H.A.P.A.G. Assistant 🌿' : $m->customer_name);
               $hasImage = !empty($m->image_path);
             @endphp
@@ -285,9 +285,9 @@
       updateCharCount();
 
       function appendMessage(m) {
-        const isAdmin = m.sender === 'admin';
-        const isBot = m.sender === 'bot';
-        const label = isAdmin ? 'You' : (isBot ? 'Luntiang H.A.P.A.G. Assistant 🌿' : escapeHtml(m.customer_name));
+        const isBot = m.sender === 'bot' || ((m.customer_name || '').includes('Assistant'));
+        const isAdmin = m.sender === 'admin' && !isBot;
+        const label = isAdmin ? 'You' : (isBot ? 'Luntiang H.A.P.A.G. Assistant 🌿' : escapeHtml(m.customer_name || 'Customer'));
         const bubbleClass = isAdmin
           ? 'bg-[#17611f] text-white rounded-br-sm shadow'
           : (isBot ? 'bg-[#e8f5e9] border border-[#c8e6c9] text-[#1a2e1c] rounded-bl-sm shadow-sm' : 'bg-white border border-[rgba(27,94,32,0.12)] text-[#1a2e1c] rounded-bl-sm shadow-sm');

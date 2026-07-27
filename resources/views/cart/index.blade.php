@@ -1,6 +1,18 @@
 @extends('layouts.app')
 @section('title','Cart | Luntiang H.A.P.A.G.')
 @section('content')
+@php
+  // Defensive defaults so every Cart link works even with an empty/stale session.
+  $cartItems = $cartItems ?? [];
+  $claimedCoupons = collect($claimedCoupons ?? []);
+  $promo = $promo instanceof \App\Models\Promotion ? $promo : null;
+  $selectedCount = $selectedCount ?? count($cartItems);
+  $selectedSubtotal = $selectedSubtotal ?? 0;
+  $deliveryFee = $deliveryFee ?? 0;
+  $discount = $discount ?? 0;
+  $total = $total ?? 0;
+  $isFreeDeliveryZone = $isFreeDeliveryZone ?? false;
+@endphp
 <main class="max-w-7xl mx-auto px-6 py-8">
   <h1 class="text-2xl font-black mb-6">Shopping Cart</h1>
   @if(empty($cartItems))
@@ -8,8 +20,7 @@
       <p class="text-4xl mb-3">🛒</p><p class="font-bold">Your cart is empty</p><a href="{{ route('products.index') }}" class="inline-block mt-4 px-5 py-2 rounded-xl bg-[#17611f] text-white text-sm font-bold">Shop Now</a>
     </div>
   @else
-  <form method="POST" action="{{ route('checkout.index') }}" class="grid lg:grid-cols-3 gap-6">
-    @csrf
+  <form method="GET" action="{{ route('checkout.index') }}" class="grid lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-4">
       <div class="bg-white rounded-xl border p-4 flex items-center gap-2">
         <input type="checkbox" id="selectAll" checked onchange="toggleAll(this)" class="w-4 h-4 accent-[#17611f]">
@@ -67,9 +78,27 @@
   </form>
   @endif
 </main>
+@php
+  $promoPayload = $promo instanceof \App\Models\Promotion
+      ? [
+          'code' => $promo->code,
+          'discount_type' => $promo->discount_type,
+          'discount_value' => (float) $promo->discount_value,
+          'is_free_delivery' => (bool) $promo->is_free_delivery,
+        ]
+      : null;
+
+  $cartPayload = collect($cartItems ?? [])->map(function ($c) {
+      return [
+          'id' => (int) ($c['id'] ?? 0),
+          'price' => (float) ($c['price'] ?? 0),
+          'qty' => (int) ($c['qty'] ?? 0),
+      ];
+  })->values();
+@endphp
 <script>
-const items = @json(array_map(fn($c)=>['id'=>(int)$c['id'],'price'=>(float)$c['price'],'qty'=>(int)$c['qty']], $cartItems ?? []));
-let currentPromo = @json($promo ? ['code'=>$promo->code,'discount_type'=>$promo->discount_type,'discount_value'=>(float)$promo->discount_value,'is_free_delivery'=>(bool)$promo->is_free_delivery] : null);
+const items = @json($cartPayload);
+let currentPromo = @json($promoPayload);
 function recalc(){
   let st=0,cnt=0;
   document.querySelectorAll('.item-cb').forEach(cb=>{if(cb.checked){let id=parseInt(cb.value);let it=items.find(i=>i.id===id);if(it){st+=it.price*it.qty;cnt++;}}});

@@ -44,7 +44,9 @@ class ChatController extends Controller
                 'chat_key'=>$chatKey,
                 'user_id'=>$userId,
                 'customer_name'=>'Luntiang H.A.P.A.G. Assistant',
-                'sender'=>'bot',
+                // Store assistant messages as "admin" for compatibility with older
+                // live_chat_messages tables that only allow customer/admin sender values.
+                'sender'=>'admin',
                 'message'=>$greeting,
             ]);
             $messages = LiveChatMessage::where('chat_key', $chatKey)->orderBy('id')->get();
@@ -109,7 +111,9 @@ class ChatController extends Controller
                 'chat_key'=>$chatKey,
                 'user_id'=>null,
                 'customer_name'=>'Luntiang H.A.P.A.G. Assistant',
-                'sender'=>'bot',
+                // Store assistant messages as "admin" for compatibility with older
+                // live_chat_messages tables that only allow customer/admin sender values.
+                'sender'=>'admin',
                 'message'=>$reply,
             ]);
             $botReplies[] = $botMsg;

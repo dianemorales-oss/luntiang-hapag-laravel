@@ -164,14 +164,14 @@
 
     <!-- Sidebar footer logout / profile links -->
     <div class="p-4 border-t border-white/10 space-y-1">
-      <a href="{{ route('admin.logout') }}"
-         onclick="return confirm('Are you sure you want to log out?');"
-         class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200">
+      <button type="button"
+              id="adminLogoutOpen"
+              class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 text-left">
         <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
         </svg>
         <span>Logout</span>
-      </a>
+      </button>
     </div>
   </aside>
 
@@ -261,6 +261,41 @@
     </main>
   </div>
 
+
+
+  <!-- Admin Logout Confirmation Modal -->
+  <div id="adminLogoutModal"
+       class="hidden fixed inset-0 z-[9999] items-center justify-center bg-[#091a0b]/65 backdrop-blur-sm px-4"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="adminLogoutModalTitle">
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-[#c8e6c9] bg-white shadow-2xl">
+      <div class="px-7 pt-7 pb-5 text-center">
+        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#e8f5e9] text-[#17611f] ring-8 ring-[#f4faf5]">
+          <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </div>
+        <h2 id="adminLogoutModalTitle" class="text-xl font-black text-[#1a2e1c]">Log out of admin?</h2>
+        <p class="mt-2 text-sm leading-relaxed text-[#5a7a5c]">
+          You are about to leave the Luntiang H.A.P.A.G. admin panel. You can sign back in anytime.
+        </p>
+      </div>
+      <div class="flex flex-col-reverse gap-3 border-t border-[#e8f5e9] bg-[#f4faf5] px-7 py-5 sm:flex-row sm:justify-end">
+        <button type="button"
+                id="adminLogoutCancel"
+                class="rounded-full border border-[rgba(27,94,32,0.14)] bg-white px-6 py-2.5 text-sm font-bold text-[#1a2e1c] hover:bg-[#e8f5e9] transition-colors">
+          Stay signed in
+        </button>
+        <a id="adminLogoutConfirm"
+           href="{{ route('admin.logout') }}"
+           class="rounded-full bg-[#17611f] px-6 py-2.5 text-center text-sm font-bold text-white shadow-sm hover:bg-[#14521a] transition-colors">
+          Yes, log out
+        </a>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Close the notification dropdown when clicking anywhere outside it.
     document.addEventListener('click', function (e) {
@@ -270,6 +305,40 @@
         dropdown.classList.add('hidden');
       }
     });
+
+    // Custom centered admin logout confirmation modal.
+    (function () {
+      var openBtn = document.getElementById('adminLogoutOpen');
+      var modal = document.getElementById('adminLogoutModal');
+      var cancelBtn = document.getElementById('adminLogoutCancel');
+
+      if (!openBtn || !modal || !cancelBtn) return;
+
+      function openLogoutModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+        setTimeout(function () { cancelBtn.focus(); }, 0);
+      }
+
+      function closeLogoutModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+        openBtn.focus();
+      }
+
+      openBtn.addEventListener('click', openLogoutModal);
+      cancelBtn.addEventListener('click', closeLogoutModal);
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeLogoutModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeLogoutModal();
+        }
+      });
+    })();
 
     // Auto-fade flash messages
     document.querySelectorAll('[data-flash-message]').forEach(function (el) {

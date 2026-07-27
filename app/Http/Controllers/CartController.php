@@ -14,7 +14,22 @@ class CartController extends Controller
         $appliedPromo = $request->session()->get('applied_promo');
 
         if (empty($cart)) {
-            return view('cart.index', ['cartItems'=>[], 'selectedSubtotal'=>0, 'deliveryFee'=>0, 'discount'=>0, 'total'=>0, 'isFreeDeliveryZone'=>false, 'isLoggedIn'=> $request->session()->has('user_id'), 'promo'=>$appliedPromo, 'claimedCoupons'=>[]]);
+            // Avoid rendering a stale coupon string as a Promotion object on an empty cart.
+            $request->session()->forget('applied_promo');
+
+            return view('cart.index', [
+                'cartItems' => [],
+                'selectedSubtotal' => 0,
+                'deliveryFee' => 0,
+                'discount' => 0,
+                'total' => 0,
+                'isFreeDeliveryZone' => false,
+                'isLoggedIn' => $request->session()->has('user_id'),
+                'promo' => null,
+                'claimedCoupons' => collect(),
+                'selectedCount' => 0,
+                'allSelected' => false,
+            ]);
         }
 
         // Build cart items from session
@@ -76,7 +91,7 @@ class CartController extends Controller
         $total = max(0, $selectedSubtotal + $deliveryFee - $discount);
 
         // claimed coupons
-        $claimedCoupons = [];
+        $claimedCoupons = collect();
         if ($userId) {
             $claimedCoupons = ClaimedCoupon::where('user_id', $userId)->with('promotion')->get()->map(function($cc){
                 return $cc->promotion;

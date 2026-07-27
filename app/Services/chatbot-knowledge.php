@@ -60,9 +60,11 @@ return [
             'action'=>"To submit: Log into your account, go to Customer Dashboard > Returns & Refunds. Provide your order number, product name, description, and photos.",
             'link'=>'returns-refund.php',
         ],
-
-
-
+        'freshness_guarantee' => [
+            'label'=>'Freshness Guarantee',
+            'requires_login'=>false,
+            'domain'=>'return',
+            'keywords'=>['freshness guarantee','freshness','quality issue','not fresh','wilted lettuce','damaged lettuce','lettuce quality'],
             'explain'=>"We guarantee your lettuce arrives fresh and crisp. If there's a quality issue, we'll replace it free within 24 hours of delivery.",
             'action'=>"Contact us with your order number and photos of the issue. We'll review and resolve within 1-2 business days.",
             'link'=>'contact-support.php',
