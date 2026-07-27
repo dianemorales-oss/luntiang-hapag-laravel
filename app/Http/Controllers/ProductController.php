@@ -14,6 +14,10 @@ class ProductController extends Controller
         $category = $request->get('category', '');
         $filter = $request->get('filter', '');
         $sort = $request->get('sort', 'featured');
+        $viewMode = $request->get('view', 'all');
+        if (!in_array($viewMode, ['all', 'retail', 'bundle', 'wholesale'], true)) {
+            $viewMode = 'all';
+        }
 
         // Eloquent query
         $query = Product::where('is_active', 1);
@@ -41,6 +45,44 @@ class ProductController extends Controller
             }
         }
 
+        if ($viewMode === 'retail') {
+            $query->whereDoesntHave('category', function($q) {
+                $q->whereIn('slug', ['salad-mix-bundles', 'wholesale', 'family-packs', 'twin-packs']);
+            })->where(function($q) {
+                $q->where('name', 'not like', '%Bundle%')
+                  ->where('name', 'not like', '%Wholesale%')
+                  ->where('name', 'not like', '%Pack%')
+                  ->where('name', 'not like', '%Tray%')
+                  ->where('name', 'not like', '%Box%')
+                  ->where('name', 'not like', '%5-Cup%')
+                  ->where('name', 'not like', '%50-Cup%');
+            });
+        } elseif ($viewMode === 'bundle') {
+            $query->where(function($q) {
+                $q->whereHas('category', function($c) {
+                    $c->whereIn('slug', ['salad-mix-bundles', 'family-packs', 'twin-packs']);
+                })
+                ->orWhere('name', 'like', '%Bundle%')
+                ->orWhere('name', 'like', '%5-Cup%')
+                ->orWhere('unit', 'like', '%bundle%')
+                ->orWhere('unit', 'like', '%5 cups%');
+            });
+        } elseif ($viewMode === 'wholesale') {
+            $query->where(function($q) {
+                $q->whereHas('category', function($c) {
+                    $c->where('slug', 'wholesale');
+                })
+                ->orWhere('name', 'like', '%Wholesale%')
+                ->orWhere('name', 'like', '%50-Cup%')
+                ->orWhere('name', 'like', '%Tray%')
+                ->orWhere('name', 'like', '%Box%')
+                ->orWhere('name', 'like', '%Restaurant Pack%')
+                ->orWhere('unit', 'like', '%tray%')
+                ->orWhere('unit', 'like', '%box%')
+                ->orWhere('unit', 'like', '%50 cups%');
+            });
+        }
+
         if ($filter === 'best_seller') {
             $query->where('is_best_seller', 1);
         }
@@ -58,8 +100,11 @@ class ProductController extends Controller
         } elseif ($sort === 'name') {
             $query->orderBy('name', 'asc');
         } else {
-            // featured (default)
-            $query->orderByDesc('is_best_seller')->orderByDesc('created_at');
+            // featured (default): show newly added bundles/wholesale products first.
+            $query->orderByDesc('is_new')
+                ->orderByDesc('is_featured')
+                ->orderByDesc('is_best_seller')
+                ->orderByDesc('created_at');
         }
 
         // Load reviews with eager-loading subqueries or attributes
@@ -74,7 +119,7 @@ class ProductController extends Controller
         $categories = Category::where('is_active', 1)->orderBy('sort_order')->get();
         $recentSearches = $request->session()->get('recent_searches', []);
 
-        return view('products.index', compact('products', 'categories', 'search', 'category', 'filter', 'sort', 'recentSearches'));
+        return view('products.index', compact('products', 'categories', 'search', 'category', 'filter', 'sort', 'viewMode', 'recentSearches'));
     }
 
     public function show(Request $request, $slug = null)

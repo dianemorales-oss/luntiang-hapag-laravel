@@ -29,7 +29,7 @@
       @foreach($cartItems as $ci)
       <div class="bg-white rounded-xl border p-4 flex gap-4 items-start" id="cart-item-{{ $ci['id'] }}">
         <input type="checkbox" name="sel[]" value="{{ $ci['id'] }}" checked onchange="recalc()" class="mt-1 w-4 h-4 accent-[#17611f] item-cb">
-        <img src="{{ asset($ci['image'] ?: 'images/lettuce/hero-farm.png') }}" class="w-20 h-20 rounded-lg object-cover">
+        <img src="{{ asset($ci['image'] ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="w-20 h-20 rounded-lg object-cover">
         <div class="flex-1">
           <a href="{{ route('products.show', $ci['slug']) }}" class="font-bold text-sm hover:text-[#17611f]">{{ $ci['name'] }}</a>
           <p class="text-xs text-[#5a7a5c]">Harvest time: {{ $ci['harvest_time'] ?? '1-3 hours' }}</p>

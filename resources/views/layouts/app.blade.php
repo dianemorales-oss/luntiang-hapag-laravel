@@ -20,7 +20,7 @@
 <body class="bg-[#f4faf5] text-[#1a2e1c] min-h-screen flex flex-col">
   <!-- Top Announcement Bar -->
   <div class="bg-[#17611f] px-4 py-[7px] text-center text-xs font-bold text-white">
-    Free delivery within Nostalji Subdivision &nbsp;|&nbsp; Harvest-on-Demand - Same-Day Delivery &nbsp;|&nbsp; Luntiang H.A.P.A.G.
+    Message us if you want us to be your supplier &nbsp;|&nbsp; Harvest-on-Demand - Same-Day Delivery &nbsp;|&nbsp; Luntiang H.A.P.A.G.
   </div>
 
   <!-- Header -->

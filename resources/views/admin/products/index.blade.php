@@ -158,7 +158,7 @@
             <tr class="border-t border-[rgba(27,94,32,0.05)] hover:bg-gray-50/50 transition-colors {{ !$p->is_active ? 'opacity-50' : '' }}">
               <td class="p-3">
                 <div class="flex items-center gap-3">
-                  <img src="{{ asset($p->image ?: 'images/lettuce/hero-farm.png') }}" class="w-10 h-10 rounded-lg object-cover border" alt="">
+                  <img src="{{ asset($p->image ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="w-10 h-10 rounded-lg object-cover border" alt="">
                   <div>
                     <p class="font-bold text-sm text-[#1a2e1c]">{{ $p->name }}</p>
                     <p class="text-xs text-[#5a7a5c]">{{ $p->variety ?: $p->unit }}</p>

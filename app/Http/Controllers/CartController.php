@@ -113,17 +113,22 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Product not available.');
         }
 
+        $maxPurchasable = $this->purchasableUnits($product);
+        if ($maxPurchasable <= 0) {
+            return redirect()->back()->with('error', 'Product is out of stock.');
+        }
+
         $cart = $request->session()->get('cart', []);
         $found = false;
         foreach ($cart as &$item) {
             if ($item['id'] === $productId) {
-                $item['qty'] = min($item['qty'] + $qty, $product->plants_available > 0 ? $product->plants_available : 999);
+                $item['qty'] = min($item['qty'] + $qty, $maxPurchasable);
                 $found = true;
                 break;
             }
         }
         if (!$found) {
-            $cart[] = ['id'=>$productId, 'qty'=>$qty];
+            $cart[] = ['id'=>$productId, 'qty'=>min($qty, $maxPurchasable)];
         }
         $request->session()->put('cart', $cart);
 
@@ -157,22 +162,31 @@ class CartController extends Controller
                 if (!$product) {
                     return response()->json(['success'=>false,'message'=>'Product not available']);
                 }
+                $maxPurchasable = $this->purchasableUnits($product);
+                if ($maxPurchasable <= 0) {
+                    return response()->json(['success'=>false,'message'=>'Product is out of stock']);
+                }
                 $found = false;
                 foreach ($cart as &$item) {
                     if ($item['id'] === $productId) {
-                        $item['qty'] = min($item['qty'] + $qty, $product->plants_available ?: 999);
+                        $item['qty'] = min($item['qty'] + $qty, $maxPurchasable);
                         $found = true;
                         break;
                     }
                 }
-                if (!$found) $cart[] = ['id'=>$productId,'qty'=>$qty];
+                if (!$found) $cart[] = ['id'=>$productId,'qty'=>min($qty, $maxPurchasable)];
                 $request->session()->put('cart', $cart);
                 if ($request->session()->has('user_id')) CartHelper::syncToDb($request->session()->get('user_id'));
                 $count = count(array_unique(array_column($cart,'id')));
                 return response()->json(['success'=>true,'message'=>'Added to cart','count'=>$count]);
 
             case 'update':
-                $newQty = max(1, $qty);
+                $product = Product::find($productId);
+                if (!$product) {
+                    return response()->json(['success'=>false,'message'=>'Product not found']);
+                }
+                $maxPurchasable = $this->purchasableUnits($product);
+                $newQty = min(max(1, $qty), max(1, $maxPurchasable));
                 foreach ($cart as &$item) {
                     if ($item['id'] === $productId) {
                         $item['qty'] = $newQty;
@@ -181,8 +195,7 @@ class CartController extends Controller
                 }
                 $request->session()->put('cart',$cart);
                 if ($request->session()->has('user_id')) CartHelper::syncToDb($request->session()->get('user_id'));
-                $product = Product::find($productId);
-                $price = $product ? (float)$product->price : 0;
+                $price = (float)$product->price;
                 $lineTotal = number_format($price * $newQty, 2);
                 return response()->json(['success'=>true,'qty'=>$newQty,'line_total'=>$lineTotal]);
 
@@ -222,6 +235,22 @@ class CartController extends Controller
             default:
                 return response()->json(['success'=>false,'message'=>'Invalid action']);
         }
+    }
+
+    private function purchasableUnits(Product $product): int
+    {
+        $available = (int) $product->plants_available;
+
+        if (!empty($product->stock_product_id)) {
+            $sourceProduct = Product::find($product->stock_product_id);
+            if ($sourceProduct) {
+                $available = min($available, (int) $sourceProduct->plants_available);
+            }
+        }
+
+        $multiplier = max(1, (int) ($product->stock_multiplier ?? 1));
+
+        return $multiplier > 1 ? intdiv(max(0, $available), $multiplier) : max(0, $available);
     }
 
     public function clear(Request $request)

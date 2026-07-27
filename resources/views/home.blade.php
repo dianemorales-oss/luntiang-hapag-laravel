@@ -2,7 +2,7 @@
 @section('title','Luntiang H.A.P.A.G. | Fresh Hydroponic Harvest-on-Demand Lettuce')
 @section('content')
 <section class="max-w-7xl mx-auto px-6 py-6">
-  <div class="relative h-[340px] sm:h-[380px] overflow-hidden rounded-2xl">
+  <div class="relative h-[340px] sm:h-[380px] overflow-hidden rounded-2xl mb-8">
     <img src="{{ asset('images/lettuce/hero-farm.png') }}" class="absolute inset-0 h-full w-full object-cover object-center" alt="Hydroponic Lettuce Farm">
     <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10"></div>
     <div class="relative flex h-full flex-col justify-center px-6 sm:px-10 text-white">
@@ -14,12 +14,6 @@
         <a href="{{ route('about') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/15 text-white px-5 py-2.5 text-sm font-bold hover:bg-white/25 transition-colors">Learn More</a>
       </div>
     </div>
-  </div>
-
-  <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 py-4 text-xs sm:text-sm font-bold text-[#17611f]">
-    <span>🌱 Hydroponic</span><span class="text-[#c8e6c9]">|</span>
-    <span>🚚 Same-Day Delivery</span><span class="text-[#c8e6c9]">|</span>
-    <span>🛍️ Pick-Up</span>
   </div>
 
   @if($activeCoupons->isNotEmpty())
@@ -77,8 +71,8 @@
         @endphp
         <article class="product-card bg-white rounded-xl overflow-hidden border border-[rgba(27,94,32,0.08)]">
           <a href="{{ route('products.show', $pslug) }}" class="block relative overflow-hidden">
-            <img src="{{ asset($pimg) }}" class="product-image aspect-square w-full object-cover" alt="{{ $pname }}">
-            @if($pbest)<b class="absolute left-2 top-2 rounded bg-[#f9a825] px-2 py-1 text-[10px] font-black text-white">🏆 Best</b>@endif
+            <img src="{{ asset($pimg) }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="product-image aspect-square w-full object-cover" alt="{{ $pname }}">
+            @if($p->is_new ?? false)<b class="absolute left-2 top-2 rounded bg-[#17611f] px-2 py-1 text-[10px] font-black text-white">New</b>@elseif($pbest)<b class="absolute left-2 top-2 rounded bg-[#f9a825] px-2 py-1 text-[10px] font-black text-white">🏆 Best</b>@endif
           </a>
           <div class="p-3">
             <a href="{{ route('products.show', $pslug) }}" class="block"><p class="text-sm font-bold hover:text-[#17611f] transition-colors line-clamp-1">{{ $pname }}</p></a>

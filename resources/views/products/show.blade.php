@@ -22,7 +22,7 @@
     <!-- LEFT: Image -->
     <div class="sticky top-24 self-start">
       <div class="rounded-2xl overflow-hidden bg-white border border-[rgba(27,94,32,0.08)]">
-        <img src="{{ asset($product->image ?: 'images/lettuce/hero-farm.png') }}" class="w-full aspect-square object-cover" alt="{{ $product->name }}">
+        <img src="{{ asset($product->image ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="w-full aspect-square object-cover" alt="{{ $product->name }}">
       </div>
     </div>
 
@@ -274,7 +274,7 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         @foreach ($relatedProducts as $rp)
           <a href="{{ route('products.show', $rp->slug) }}" class="product-card bg-white rounded-xl overflow-hidden border border-[rgba(27,94,32,0.08)] hover:shadow-lg hover:-translate-y-1 transition-all">
-            <img src="{{ asset($rp->image ?: 'images/lettuce/hero-farm.png') }}" class="w-full aspect-square object-cover" alt="">
+            <img src="{{ asset($rp->image ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="w-full aspect-square object-cover" alt="">
             <div class="p-3">
               <p class="text-sm font-bold truncate">{{ $rp->name }}</p>
               <p class="font-black text-[#17611f] text-sm mt-1">₱{{ number_format((float)$rp->price, 2) }}</p>

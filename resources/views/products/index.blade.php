@@ -22,6 +22,9 @@
         @if ($filter)
           <input type="hidden" name="filter" value="{{ $filter }}">
         @endif
+        @if (($viewMode ?? 'all') !== 'all')
+          <input type="hidden" name="view" value="{{ $viewMode }}">
+        @endif
       </div>
     </form>
 
@@ -33,9 +36,44 @@
       <option value="name" {{ $sort === 'name' ? 'selected' : '' }}>Name A-Z</option>
     </select>
     
-    @if ($search || $category || $filter)
+    @if ($search || $category || $filter || (($viewMode ?? 'all') !== 'all'))
       <a href="{{ route('products.index') }}" class="text-sm font-bold text-[#17611f] hover:underline whitespace-nowrap">Clear</a>
     @endif
+  </div>
+
+  <!-- View By Filter -->
+  @php
+    $viewMode = $viewMode ?? 'all';
+    $viewOptions = [
+        'all' => ['label' => 'All', 'icon' => '🌿', 'desc' => 'Everything'],
+        'retail' => ['label' => 'Retail', 'icon' => '🥬', 'desc' => 'Single cups'],
+        'bundle' => ['label' => 'Bundle', 'icon' => '🧺', 'desc' => '5-cup bundles'],
+        'wholesale' => ['label' => 'Wholesale', 'icon' => '📦', 'desc' => 'Bulk sacks'],
+    ];
+  @endphp
+  <div class="mb-6 rounded-2xl border border-[rgba(27,94,32,0.10)] bg-white p-3 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p class="text-[11px] font-black uppercase tracking-[0.16em] text-[#17611f]">View by</p>
+        <p class="text-xs text-[#5a7a5c]">Choose the product type you want to browse.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[620px]">
+        @foreach ($viewOptions as $key => $option)
+          @php
+            $params = request()->except(['view', 'page']);
+            if ($key !== 'all') {
+                $params['view'] = $key;
+            }
+            $isActiveView = $viewMode === $key;
+          @endphp
+          <a href="{{ route('products.index', $params) }}"
+             class="rounded-xl border px-4 py-3 transition-all {{ $isActiveView ? 'border-[#17611f] bg-[#17611f] text-white shadow-sm' : 'border-[rgba(27,94,32,0.10)] bg-[#f4faf5] text-[#1a2e1c] hover:border-[#17611f]/30 hover:bg-[#e8f5e9]' }}">
+            <span class="block text-sm font-black">{{ $option['icon'] }} {{ $option['label'] }}</span>
+            <span class="mt-0.5 block text-[11px] {{ $isActiveView ? 'text-white/75' : 'text-[#5a7a5c]' }}">{{ $option['desc'] }}</span>
+          </a>
+        @endforeach
+      </div>
+    </div>
   </div>
 
   <!-- Recent Searches Row -->
@@ -61,11 +99,15 @@
       @foreach ($products as $p)
         <article class="product-card bg-white rounded-xl overflow-hidden border border-[rgba(27,94,32,0.08)]">
           <a href="{{ route('products.show', $p->slug) }}" class="block relative overflow-hidden">
-            <img src="{{ asset($p->image ?: 'images/lettuce/hero-farm.png') }}" class="product-image aspect-square w-full object-cover" alt="{{ $p->name }}">
-            @if ($p->is_best_seller)
+            <img src="{{ asset($p->image ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="product-image aspect-square w-full object-cover" alt="{{ $p->name }}">
+            @if ($p->is_new)
+              <b class="absolute left-2 top-2 rounded bg-[#17611f] px-2 py-1 text-[10px] font-black text-white">New</b>
+            @elseif ($p->is_best_seller)
               <b class="absolute left-2 top-2 rounded bg-[#f9a825] px-2 py-1 text-[10px] font-black text-white">Best Seller</b>
             @endif
-            @if ($p->plants_available > 0 && $p->plants_available <= 20)
+            @if ($p->plants_available <= 0)
+              <span class="absolute right-2 bottom-2 rounded bg-gray-700/85 px-2 py-1 text-[10px] font-black text-white">Out of Stock</span>
+            @elseif ($p->plants_available > 0 && $p->plants_available <= 20)
               <span class="absolute right-2 bottom-2 rounded bg-red-500/85 px-2 py-1 text-[10px] font-black text-white">Limited</span>
             @endif
           </a>

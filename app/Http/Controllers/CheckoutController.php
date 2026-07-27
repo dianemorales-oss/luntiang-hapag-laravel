@@ -199,8 +199,25 @@ class CheckoutController extends Controller
                     'quantity' => $ci['qty'],
                 ]);
                 // decrement stock
-                if ($ci['product']->plants_available > 0) {
-                    $ci['product']->decrement('plants_available', $ci['qty']);
+                // Five-cup bundle products deduct 5 plants/cups per purchased bundle.
+                // If a bundle points to a source product, deduct from both the bundle row
+                // and the source product row so admin inventory stays in sync.
+                $stockMultiplier = max(1, (int)($ci['product']->stock_multiplier ?? 1));
+                $stockToDeduct = $ci['qty'] * $stockMultiplier;
+                $stockTargets = [$ci['product']];
+
+                if (!empty($ci['product']->stock_product_id)) {
+                    $sourceProduct = Product::find($ci['product']->stock_product_id);
+                    if ($sourceProduct && $sourceProduct->id !== $ci['product']->id) {
+                        $stockTargets[] = $sourceProduct;
+                    }
+                }
+
+                foreach ($stockTargets as $stockProduct) {
+                    if ($stockProduct && $stockToDeduct > 0) {
+                        $stockProduct->plants_available = max(0, (int)$stockProduct->plants_available - $stockToDeduct);
+                        $stockProduct->save();
+                    }
                 }
             }
 
