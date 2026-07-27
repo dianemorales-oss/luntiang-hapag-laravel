@@ -59,9 +59,27 @@ class TicketController extends Controller
             'sender_type'=>'admin',
             'message'=>$message,
         ]);
+        $oldStatus = $ticket->status;
         $ticket->status = $request->input('status', 'in_progress');
         $ticket->replied_at = now();
         $ticket->save();
+
+        // Notify customer about reply and status change
+        try {
+            if ($oldStatus !== $ticket->status) {
+                \App\Helpers\CustomerNotificationHelper::ticketStatusChanged($ticket->user_id, $ticket->id, $ticket->subject, $ticket->status);
+            } else {
+                \App\Helpers\CustomerNotificationHelper::create(
+                    $ticket->user_id,
+                    'ticket_status',
+                    "New reply on Ticket #{$ticket->id}",
+                    "Support team replied to your ticket '{$ticket->subject}': " . \Illuminate\Support\Str::limit($message, 100),
+                    $ticket->id,
+                    'ticket',
+                    route('tickets.show', ['id' => $ticket->id])
+                );
+            }
+        } catch (\Exception $e) {}
 
         return back()->with('success','Replied');
     }
@@ -72,6 +90,11 @@ class TicketController extends Controller
         $status = $request->input('status');
         $ticket->status = $status;
         $ticket->save();
+
+        try {
+            \App\Helpers\CustomerNotificationHelper::ticketStatusChanged($ticket->user_id, $ticket->id, $ticket->subject, $status);
+        } catch (\Exception $e) {}
+
         return back()->with('success','Status updated');
     }
 }

@@ -8,11 +8,15 @@ class SupportController extends Controller
 {
     public function faq()
     {
-        $faqs = Faq::orderByDesc('created_at')->get();
+        // Exclude Account category per requirements
+        $faqs = Faq::whereRaw('LOWER(category) != ?', ['account'])
+            ->orderByDesc('created_at')
+            ->get();
         
         $categories = [];
         foreach ($faqs as $f) {
             $cat = $f->category ?: 'General';
+            if (strtolower($cat) === 'account') continue;
             $slug = strtolower($cat);
             if (!isset($categories[$slug])) {
                 $categories[$slug] = $cat;
@@ -27,7 +31,16 @@ class SupportController extends Controller
 
     public function about()
     {
-        return view('support.about');
+        try {
+            $customerCount = \App\Models\User::count();
+            $totalOrders = \App\Models\Order::where('status','!=','cancelled')->count();
+            $lettuceVarieties = \App\Models\Product::where('is_active',1)->count();
+        } catch (\Exception $e) {
+            $customerCount = 0;
+            $totalOrders = 0;
+            $lettuceVarieties = 8;
+        }
+        return view('support.about', compact('customerCount','totalOrders','lettuceVarieties'));
     }
     public function privacy()
     {

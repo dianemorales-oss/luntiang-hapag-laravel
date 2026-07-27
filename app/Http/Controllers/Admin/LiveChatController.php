@@ -105,6 +105,14 @@ class LiveChatController extends Controller
             'image_path' => $imagePath,
         ]);
 
+        // Notify customer about agent reply (real-time notification)
+        try {
+            $customerMsg = LiveChatMessage::where('chat_key', $activeChatKey)->where('sender', 'customer')->orderBy('id')->first();
+            if ($customerMsg && $customerMsg->user_id) {
+                \App\Helpers\CustomerNotificationHelper::chatAgentReply($customerMsg->user_id, $msg->id, 'Support Agent');
+            }
+        } catch (\Exception $e) {}
+
         // A human agent has now joined this conversation — stop the bot from replying
         ChatBotState::updateOrCreate(
             ['chat_key' => $activeChatKey],

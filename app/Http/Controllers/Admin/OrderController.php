@@ -52,6 +52,11 @@ class OrderController extends Controller
 
         NotificationHelper::create('order_status', $order->id, 'Order status updated', "Order {$order->order_number} is now " . ($labels[$status] ?? $status), $order->customer_name);
 
+        // Customer real-time notification
+        try {
+            \App\Helpers\CustomerNotificationHelper::orderStatusChanged($order->user_id, $order->id, $order->order_number, $status);
+        } catch (\Exception $e) {}
+
         return back()->with('success', 'Order updated to: ' . ($labels[$status] ?? $status));
     }
 }

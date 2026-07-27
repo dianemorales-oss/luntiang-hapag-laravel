@@ -135,6 +135,33 @@ return [
         ['keywords'=>['return request','return and refund','how do i return','how do i submit a return'],'answer'=>"To submit a return: Log in, go to Dashboard > Support > Return & Refund. Provide your order number, product name, reason, and photos. Returns must be requested within 24 hours of delivery."],
         ['keywords'=>['live chat','talk to agent','human','real person','agent'],'answer'=>"You're already chatting with me! If you need a human agent, just say 'I want to talk to a live agent' and I'll connect you with our support team. They're available Mon-Sat, 8AM-6PM."],
         ['keywords'=>['assistant','talk to the assistant','back to assistant','talk to assistant','assistant again'],'answer'=>"I'm here! The live chat assistant is always available to help with your questions about products, orders, delivery, and more. What can I help you with?"],
+        ['id'=>'support_ticket_what','group'=>'support','display'=>'Support Ticket','keywords'=>['what is support ticket','support ticket meaning','what is ticket','explain ticket'],'answer'=>"A Support Ticket is your direct line to our Luntiang H.A.P.A.G. support team. It's tracked with a unique Ticket ID, allowing you and our team to follow conversation, status, and resolution.
+
+Statuses:
+• Open: Waiting for team review
+• In Progress: Team is working on it
+• Resolved: Solution provided
+• Closed: Closed after resolution
+
+You can view all tickets in Customer Dashboard > Support Requests Summary with Ticket ID, Subject, Category, Date, Status, Last Updated, and View Details button."],
+        ['id'=>'support_ticket_how','group'=>'support','display'=>'Create Support Ticket','keywords'=>['how to create support ticket','create ticket','submit ticket guide','how do i submit ticket step by step'],'answer'=>"How to create a Support Ticket:
+
+1. Log in to your account
+2. Go to Customer Dashboard > Support > Submit Ticket (or /submit-ticket)
+3. Fill: Subject, Category (Order Issue, Product Defect, Delivery Issue, Payment Issue, Website Issue, Other), Priority (Low/Medium/High), Order Number if applicable (e.g., LH-0001), Issue Description (max 1000 chars), Attachment (JPG/PNG/PDF, max 5MB)
+4. Review on confirmation page
+5. Click Confirm – you'll get Ticket ID instantly
+
+You get real-time notification when status changes. Expected response: High Priority 2-4h, Medium 12-24h, Low 24-48h during business hours (8AM-8PM, everyday)."],
+        ['id'=>'support_ticket_process','group'=>'support','display'=>'Ticket Processing','keywords'=>['how support ticket processed','ticket processing','ticket workflow','expected response time','how long ticket takes'],'answer'=>"How Support Tickets are processed:
+
+1. Acknowledgment – status Open, appears in your Dashboard Support Requests Summary
+2. Assignment – team reviews by priority (High first)
+3. In Progress – team investigates, may ask follow-up via ticket replies
+4. Resolved – solution provided, you get real-time notification (bell + optional browser notification)
+5. Closed – after 48h or manual close
+
+All history saved permanently. For urgent help, use Live Chat – our chatbot maintains context throughout session, understands follow-ups, and can escalate to human with image upload support."],
     ],
     'quick_actions' => [
         'primary' => [

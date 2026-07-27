@@ -66,6 +66,24 @@ class ChatbotEngine
         $lower = $this->normalize($text);
         $state = $this->getState();
 
+        // Enhanced context: keep last user messages to understand follow-ups without repeating info
+        $recentUserMessages = $this->getRecentUserMessages(5);
+        $combinedContext = implode(' ', $recentUserMessages) . ' ' . $lower;
+        $combinedLower = $this->normalize($combinedContext);
+
+        // If this looks like a follow-up and we have last topic, try to resolve using context first
+        if ($this->isFollowUpQuestion($lower, $state['last_topic'])) {
+            $contextual = $this->resolveContextualFollowUp($lower, $state['last_topic']);
+            if ($contextual !== null) {
+                return $contextual;
+            }
+            // Try ranking with combined context (previous + current) for better accuracy
+            $candidatesWithContext = $this->rankedCandidates($combinedLower);
+            if (!empty($candidatesWithContext)) {
+                return ['replies' => [$this->answerFromCandidate($candidatesWithContext[0], $state['last_topic'])], 'escalate' => false, 'context' => null];
+            }
+        }
+
         if ($this->matchesAny($lower, $this->kb['reactivate_keywords'] ?? [])) {
             $this->setState(true, null, null);
             return [
@@ -184,6 +202,31 @@ class ChatbotEngine
     {
         $messages = LiveChatMessage::where('chat_key', $this->chatKey)->orderByDesc('id')->limit(10)->get()->reverse()->toArray();
         return $messages;
+    }
+
+    private function getRecentUserMessages(int $limit = 5): array
+    {
+        return LiveChatMessage::where('chat_key', $this->chatKey)
+            ->where('sender', 'customer')
+            ->orderByDesc('id')
+            ->limit($limit)
+            ->pluck('message')
+            ->filter()
+            ->values()
+            ->toArray();
+    }
+
+    private function isFollowUpQuestion(string $lower, ?string $lastTopic): bool
+    {
+        if ($lastTopic === null) return false;
+        // Short queries like "how much", "how long", "what about it", "and delivery?", "price?"
+        if (str_word_count($lower) <= 4) return true;
+        // Contains referential pronouns
+        $pronouns = ['it','this','that','them','those','these','more','also','delivery','price','fee','how much','how long','when','where'];
+        foreach ($pronouns as $p) {
+            if (str_contains($lower, $p)) return true;
+        }
+        return false;
     }
 
     private function isHelpRequest(string $lower): bool

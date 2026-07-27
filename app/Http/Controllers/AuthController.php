@@ -68,8 +68,31 @@ class AuthController extends Controller
         if (!$accept) {
             return back()->with('error', 'You must agree to the Terms of Service and Privacy Policy.')->withInput();
         }
+        // Enhanced email validation
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return back()->with('error', 'Please enter a valid email address.')->withInput();
+            return back()->with('error', 'Please enter a valid email address. Example: name@example.com')->withInput();
+        }
+        // Standard email syntax check - must have proper structure
+        if (!preg_match('/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/', $email)) {
+            return back()->with('error', 'Invalid email format. Use standard format like name@example.com')->withInput();
+        }
+        // Check local part (before @) must contain at least one alphanumeric and not only special characters
+        $emailParts = explode('@', $email);
+        $localPart = $emailParts[0] ?? '';
+        if (!preg_match('/[a-zA-Z0-9]/', $localPart)) {
+            return back()->with('error', 'Email must contain letters or numbers before @. Example: john@example.com, not !!!@example.com')->withInput();
+        }
+        if (preg_match('/^[!@#$%^&*()_+\-=\[\]{};\':"\\\\|,.<>\/?`~]+$/', $localPart)) {
+            return back()->with('error', 'Email cannot contain only special characters before @. Please include letters or numbers.')->withInput();
+        }
+        // Local part should not start or end with dot or hyphen, and not have consecutive dots
+        if (preg_match('/^[\.\-]|[\.\-]$/', $localPart) || str_contains($localPart, '..')) {
+            return back()->with('error', 'Email cannot start/end with dot or hyphen, nor have consecutive dots. Example: john.doe@example.com')->withInput();
+        }
+        // Domain part validation
+        $domainPart = $emailParts[1] ?? '';
+        if (preg_match('/^[\.\-]|[\.\-]$|\.\./', $domainPart) || !str_contains($domainPart, '.')) {
+            return back()->with('error', 'Email domain must be valid, e.g., example.com')->withInput();
         }
         if (!preg_match('/^[A-Za-z\s\-\.]{1,50}$/', $first_name)) {
             return back()->with('error', 'First name must contain letters only.')->withInput();
