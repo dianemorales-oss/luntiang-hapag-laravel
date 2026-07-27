@@ -5,7 +5,7 @@
 <main class="flex-1 flex items-center justify-center px-6 py-16">
   <div class="w-full max-w-md bg-white rounded-2xl border border-[rgba(27,94,32,0.08)] shadow-sm p-9">
     <span class="inline-block text-[11px] font-semibold tracking-wide text-[#17611f] bg-[#e8f5e9] rounded-full px-3 py-1 mb-5">LOGIN</span>
-    <h1 class="text-3xl font-black text-[#1a2e1c] mb-2">Welcome back 🌿</h1>
+    <h1 class="text-3xl font-black text-[#1a2e1c] mb-2">Welcome to Luntiang Hapag 🌿</h1>
     <p class="text-[#5a7a5c] text-sm mb-8">Sign in to manage your orders and support requests.</p>
 
     @if (session('success') || session('error'))
@@ -67,7 +67,7 @@
           </button>
         </div>
       </div>
-      <button type="submit" class="w-full rounded-xl bg-[#17611f] text-white text-sm font-black py-3.5 hover:bg-[#14521a] transition-colors">Sign In</button>
+      <button type="submit" class="w-full rounded-xl bg-[#17611f] text-white text-sm font-black py-3.5 hover:bg-[#14521a] transition-colors">Login</button>
       <div class="flex items-center justify-between pt-1">
         <a href="{{ route('forgot.password') }}" class="text-sm text-[#17611f] hover:text-[#14521a] font-semibold transition-colors">Forgot password?</a>
         <a href="{{ route('register') }}" class="text-sm text-[#17611f] hover:text-[#14521a] font-semibold transition-colors">Create account →</a>

@@ -23,7 +23,14 @@ class ReviewController extends Controller
         $upload = FormHelper::handleUpload($request->file('review_photos'), ['jpg','jpeg','png'], storage_path('app/public/reviews'), 'uploads/reviews', false);
         if (!$upload['ok']) return back()->with('error',$upload['error']);
 
-        $isVerified = \App\Models\Order::where('user_id',$userId)->whereHas('items', fn($q)=>$q->where('product_id',$productId))->exists();
+        $isVerified = \App\Models\Order::where('user_id',$userId)
+            ->whereIn('status', ['delivered', 'completed'])
+            ->whereHas('items', fn($q)=>$q->where('product_id',$productId))
+            ->exists();
+
+        if (!$isVerified) {
+            return back()->with('error', 'You can only review products that you have purchased.');
+        }
 
         Review::create([
             'user_id'=>$userId,

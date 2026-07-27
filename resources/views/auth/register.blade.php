@@ -81,16 +81,50 @@
           <input type="text" id="street" name="street" placeholder="House/Unit No., Street, Barangay" required value="{{ old('street') }}"
                  class="w-full rounded-xl border border-[rgba(27,94,32,0.12)] px-4 py-3 text-sm text-[#1a2e1c] placeholder-[#9e9e9e] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 focus:border-[#52b788] transition-colors" />
         </div>
+        @php
+          $caviteCitiesMunicipalities = [
+              'Alfonso',
+              'Amadeo',
+              'Bacoor City',
+              'Carmona City',
+              'Cavite City',
+              'Dasmarinas City',
+              'General Emilio Aguinaldo',
+              'General Mariano Alvarez',
+              'General Trias City',
+              'Imus City',
+              'Indang',
+              'Kawit',
+              'Magallanes',
+              'Maragondon',
+              'Mendez',
+              'Naic',
+              'Noveleta',
+              'Rosario',
+              'Silang',
+              'Tagaytay City',
+              'Tanza',
+              'Ternate',
+              'Trece Martires City',
+          ];
+        @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="city" class="block text-xs font-bold text-[#5a7a5c] mb-1">City / Municipality</label>
-            <input type="text" id="city" name="city" placeholder="City or Municipality" required value="{{ old('city') }}"
-                   class="w-full rounded-xl border border-[rgba(27,94,32,0.12)] px-4 py-3 text-sm text-[#1a2e1c] placeholder-[#9e9e9e] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 focus:border-[#52b788] transition-colors" />
+            <select id="city" name="city" required
+                    class="w-full rounded-xl border border-[rgba(27,94,32,0.12)] bg-white px-4 py-3 text-sm text-[#1a2e1c] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 focus:border-[#52b788] transition-colors">
+              <option value="" disabled {{ old('city') ? '' : 'selected' }}>Select city or municipality</option>
+              @foreach ($caviteCitiesMunicipalities as $cityOption)
+                <option value="{{ $cityOption }}" {{ old('city') === $cityOption ? 'selected' : '' }}>{{ $cityOption }}</option>
+              @endforeach
+            </select>
           </div>
           <div>
             <label for="province" class="block text-xs font-bold text-[#5a7a5c] mb-1">Province</label>
-            <input type="text" id="province" name="province" placeholder="Province" required value="{{ old('province') }}"
-                   class="w-full rounded-xl border border-[rgba(27,94,32,0.12)] px-4 py-3 text-sm text-[#1a2e1c] placeholder-[#9e9e9e] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 focus:border-[#52b788] transition-colors" />
+            <select id="province" name="province" required
+                    class="w-full rounded-xl border border-[rgba(27,94,32,0.12)] bg-white px-4 py-3 text-sm text-[#1a2e1c] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 focus:border-[#52b788] transition-colors">
+              <option value="Cavite" {{ old('province', 'Cavite') === 'Cavite' ? 'selected' : '' }}>Cavite</option>
+            </select>
           </div>
         </div>
         <div class="max-w-[200px]">

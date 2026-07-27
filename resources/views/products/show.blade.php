@@ -88,7 +88,8 @@
             @csrf
             <input type="hidden" name="id" value="{{ $product->id }}">
             <input type="hidden" name="qty" value="1" id="buyNowQty">
-            <button type="submit" onclick="document.getElementById('buyNowQty').value = document.getElementById('productQty')?.value || 1" class="btn-green btn-buy px-6">⚡ Buy Now</button>
+            <input type="hidden" name="redirect" value="checkout">
+            <button type="submit" onclick="document.getElementById('buyNowQty').value = document.getElementById('productQty')?.value || 1" class="px-6 py-2.5 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600 transition-colors">⚡ Buy Now</button>
           </form>
         @elseif ($available < 1)
           <button disabled class="btn-green w-full opacity-50 cursor-not-allowed">Temporarily Unavailable</button>
@@ -101,7 +102,7 @@
             </div>
             <button type="button" onclick="addToCart({{ $product->id }}, parseInt(document.getElementById('productQty').value || 1))" class="btn-green btn-primary flex-1">🛒 Add to Cart</button>
           </div>
-          <a href="{{ route('login') }}" class="btn-green btn-buy px-6">⚡ Buy Now</a>
+          <a href="{{ route('login') }}" class="px-6 py-2.5 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600 transition-colors">⚡ Buy Now</a>
         @endif
       </div>
 
@@ -180,6 +181,8 @@
       </div>
       @if ($canReview)
         <button onclick="document.getElementById('reviewForm').classList.toggle('hidden')" class="btn-green btn-outline text-sm">✍️ Write a Review</button>
+      @elseif ($isLoggedIn)
+        <span class="text-xs font-bold text-[#5a7a5c] bg-[#f4faf5] border rounded-full px-3 py-2">You can only review products that you have purchased.</span>
       @endif
     </div>
 

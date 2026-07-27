@@ -4,6 +4,7 @@ use App\Models\ReturnRequest;
 use App\Models\WarrantyRequest;
 use App\Helpers\FormHelper;
 use App\Helpers\NotificationHelper;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class ReturnController extends Controller
@@ -15,7 +16,20 @@ class ReturnController extends Controller
         ]);
         $reasons = ['Wrong Item','Damaged Item','Wilted Lettuce','Missing Item','Quality Issue','Other'];
         $conditions = ['Unopened','Opened','Damaged'];
-        return view('returns.index', compact('formData','reasons','conditions'));
+        $eligibleOrders = Order::where('user_id', $request->session()->get('user_id'))
+            ->whereIn('status', ['delivered', 'completed'])
+            ->orderByDesc('created_at')
+            ->with('items')
+            ->get()
+            ->map(function ($order) {
+                $receivedAt = $order->updated_at ?: $order->created_at;
+                $order->return_purchase_date = $order->created_at->toDateString();
+                $order->return_deadline = $receivedAt ? $receivedAt->copy()->addHours(24) : null;
+                $order->return_expired = $order->return_deadline ? now()->greaterThan($order->return_deadline) : false;
+                $order->return_product_names = $order->items->pluck('product_name')->filter()->implode(', ');
+                return $order;
+            });
+        return view('returns.index', compact('formData','reasons','conditions','eligibleOrders'));
     }
 
     public function store(Request $request)
@@ -62,6 +76,31 @@ class ReturnController extends Controller
         if (!FormHelper::isValidOrderNumber($order_number)) {
             return back()->with('error', FormHelper::ORDER_NUMBER_HELP_TEXT)->withInput();
         }
+
+        $order = Order::where('user_id', $request->session()->get('user_id'))
+            ->where('order_number', $order_number)
+            ->whereIn('status', ['delivered', 'completed'])
+            ->with('items')
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Please select a completed or delivered order from your order history.')->withInput();
+        }
+
+        $actualPurchaseDate = $order->created_at->toDateString();
+        if ($purchase_date !== $actualPurchaseDate) {
+            return back()->with('error', 'Purchase date must match the actual purchase date of the selected order.')->withInput();
+        }
+
+        $receivedAt = $order->updated_at ?: $order->created_at;
+        if ($receivedAt && now()->greaterThan($receivedAt->copy()->addHours(24))) {
+            return back()->with('error', 'Return requests must be submitted within 24 hours after receiving your order.')->withInput();
+        }
+
+        if (!in_array($product_name, $order->items->pluck('product_name')->toArray(), true)) {
+            return back()->with('error', 'Please select a product that belongs to the selected order.')->withInput();
+        }
+
         if (!in_array($reason_category, $reasons, true)) return back()->with('error','Invalid reason')->withInput();
         if (!in_array($product_condition, $conditions, true)) return back()->with('error','Invalid condition')->withInput();
 

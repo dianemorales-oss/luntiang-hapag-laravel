@@ -9,6 +9,14 @@ use Illuminate\Support\Str;
 
 class LiveChatController extends Controller
 {
+    private function cleanMessageForDatabase(?string $message): string
+    {
+        $message = (string) $message;
+        $clean = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $message);
+
+        return $clean === null ? $message : trim($clean);
+    }
+
     public function index(Request $request)
     {
         // Conversation list: one row per chat_key, showing the latest message.
@@ -93,7 +101,7 @@ class LiveChatController extends Controller
             'user_id' => null,
             'customer_name' => 'Luntiang H.A.P.A.G. Support',
             'sender' => 'admin',
-            'message' => $text,
+            'message' => $this->cleanMessageForDatabase($text),
             'image_path' => $imagePath,
         ]);
 

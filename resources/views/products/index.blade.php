@@ -41,6 +41,7 @@
     @endif
   </div>
 
+  <section id="productsAjaxArea">
   <!-- View By Filter -->
   @php
     $viewMode = $viewMode ?? 'all';
@@ -67,7 +68,7 @@
             $isActiveView = $viewMode === $key;
           @endphp
           <a href="{{ route('products.index', $params) }}"
-             class="rounded-xl border px-4 py-3 transition-all {{ $isActiveView ? 'border-[#17611f] bg-[#17611f] text-white shadow-sm' : 'border-[rgba(27,94,32,0.10)] bg-[#f4faf5] text-[#1a2e1c] hover:border-[#17611f]/30 hover:bg-[#e8f5e9]' }}">
+             class="js-product-filter rounded-xl border px-4 py-3 transition-all {{ $isActiveView ? 'border-[#17611f] bg-[#17611f] text-white shadow-sm' : 'border-[rgba(27,94,32,0.10)] bg-[#f4faf5] text-[#1a2e1c] hover:border-[#17611f]/30 hover:bg-[#e8f5e9]' }}">
             <span class="block text-sm font-black">{{ $option['icon'] }} {{ $option['label'] }}</span>
             <span class="mt-0.5 block text-[11px] {{ $isActiveView ? 'text-white/75' : 'text-[#5a7a5c]' }}">{{ $option['desc'] }}</span>
           </a>
@@ -100,9 +101,7 @@
         <article class="product-card bg-white rounded-xl overflow-hidden border border-[rgba(27,94,32,0.08)]">
           <a href="{{ route('products.show', $p->slug) }}" class="block relative overflow-hidden">
             <img src="{{ asset($p->image ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="product-image aspect-square w-full object-cover" alt="{{ $p->name }}">
-            @if ($p->is_new)
-              <b class="absolute left-2 top-2 rounded bg-[#17611f] px-2 py-1 text-[10px] font-black text-white">New</b>
-            @elseif ($p->is_best_seller)
+            @if ($p->is_best_seller)
               <b class="absolute left-2 top-2 rounded bg-[#f9a825] px-2 py-1 text-[10px] font-black text-white">Best Seller</b>
             @endif
             @if ($p->plants_available <= 0)
@@ -137,6 +136,7 @@
       @endforeach
     </div>
   @endif
+  </section>
 </main>
 
 @push('scripts')
@@ -205,6 +205,29 @@ async function addToCart(id, qty) {
     showToast('Network error', false);
   }
 }
+
+// Smooth no-refresh product view filtering.
+document.addEventListener('click', async function(e){
+  var link = e.target.closest('.js-product-filter');
+  if(!link) return;
+  e.preventDefault();
+  try {
+    var res = await fetch(link.href, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    var html = await res.text();
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    var fresh = doc.getElementById('productsAjaxArea');
+    var current = document.getElementById('productsAjaxArea');
+    if(fresh && current){
+      current.innerHTML = fresh.innerHTML;
+      history.pushState({}, '', link.href);
+      window.scrollTo({top: current.offsetTop - 90, behavior: 'smooth'});
+    } else {
+      window.location.href = link.href;
+    }
+  } catch(err) {
+    window.location.href = link.href;
+  }
+});
 </script>
 @endpush
 

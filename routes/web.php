@@ -85,10 +85,14 @@ Route::post('/coupons/claim', function(\Illuminate\Http\Request $request){
     if (!session()->has('user_id')) return redirect()->route('login');
     $promotionId = (int)$request->input('promotion_id');
     $userId = session()->get('user_id');
+    $promotion = Promotion::where('id', $promotionId)
+        ->where('is_active', 1)
+        ->where(function($q){ $q->whereNull('expires_at')->orWhere('expires_at', '>=', now()->toDateString()); })
+        ->first();
+    if (!$promotion) return back()->with('error', 'Coupon is not available.');
     $exists = ClaimedCoupon::where('user_id',$userId)->where('promotion_id',$promotionId)->exists();
-    if (!$exists) {
-        ClaimedCoupon::create(['user_id'=>$userId,'promotion_id'=>$promotionId]);
-    }
+    if ($exists) return back()->with('error', 'You already claimed this coupon.');
+    ClaimedCoupon::create(['user_id'=>$userId,'promotion_id'=>$promotionId]);
     return back()->with('success','Coupon claimed');
 })->name('coupons.claim')->middleware('customer.auth');
 

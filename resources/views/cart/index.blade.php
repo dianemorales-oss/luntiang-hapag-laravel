@@ -20,15 +20,15 @@
       <p class="text-4xl mb-3">🛒</p><p class="font-bold">Your cart is empty</p><a href="{{ route('products.index') }}" class="inline-block mt-4 px-5 py-2 rounded-xl bg-[#17611f] text-white text-sm font-bold">Shop Now</a>
     </div>
   @else
-  <form method="GET" action="{{ route('checkout.index') }}" class="grid lg:grid-cols-3 gap-6">
+  <form method="GET" action="{{ route('checkout.index') }}" class="grid lg:grid-cols-3 gap-6" id="cartCheckoutForm">
     <div class="lg:col-span-2 space-y-4">
       <div class="bg-white rounded-xl border p-4 flex items-center gap-2">
-        <input type="checkbox" id="selectAll" checked onchange="toggleAll(this)" class="w-4 h-4 accent-[#17611f]">
+        <input type="checkbox" id="selectAll" onchange="toggleAll(this)" class="w-4 h-4 accent-[#17611f]">
         <label for="selectAll" class="font-bold text-sm">Select All ({{ count($cartItems) }} items)</label>
       </div>
       @foreach($cartItems as $ci)
       <div class="bg-white rounded-xl border p-4 flex gap-4 items-start" id="cart-item-{{ $ci['id'] }}">
-        <input type="checkbox" name="sel[]" value="{{ $ci['id'] }}" checked onchange="recalc()" class="mt-1 w-4 h-4 accent-[#17611f] item-cb">
+        <input type="checkbox" name="sel[]" value="{{ $ci['id'] }}" {{ !empty($ci['selected']) ? 'checked' : '' }} onchange="recalc()" class="mt-1 w-4 h-4 accent-[#17611f] item-cb">
         <img src="{{ asset($ci['image'] ?: 'images/lettuce/hero-farm.png') }}" onerror="this.onerror=null;this.src='{{ asset('images/lettuce/hero-farm.png') }}';" class="w-20 h-20 rounded-lg object-cover">
         <div class="flex-1">
           <a href="{{ route('products.show', $ci['slug']) }}" class="font-bold text-sm hover:text-[#17611f]">{{ $ci['name'] }}</a>
@@ -101,7 +101,10 @@ const items = @json($cartPayload);
 let currentPromo = @json($promoPayload);
 function recalc(){
   let st=0,cnt=0;
-  document.querySelectorAll('.item-cb').forEach(cb=>{if(cb.checked){let id=parseInt(cb.value);let it=items.find(i=>i.id===id);if(it){st+=it.price*it.qty;cnt++;}}});
+  const cbs = document.querySelectorAll('.item-cb');
+  cbs.forEach(cb=>{if(cb.checked){let id=parseInt(cb.value);let it=items.find(i=>i.id===id);if(it){st+=it.price*it.qty;cnt++;}}});
+  const selectAll = document.getElementById('selectAll');
+  if(selectAll){selectAll.checked = cbs.length > 0 && cnt === cbs.length;}
   let df={{ $isFreeDeliveryZone?1:0 }}?0:(cnt===0?0:50);
   if(currentPromo && currentPromo.is_free_delivery) df=0;
   let d=0;
@@ -129,5 +132,12 @@ async function applyCoupon(code){
   let r=await fetch('{{ route('cart.ajax') }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({action:'select_promo',promo_code:code})});
   let d=await r.json();if(d.success){currentPromo=d.promo;recalc();}else{alert(d.message);}
 }
+document.addEventListener('DOMContentLoaded', recalc);
+document.getElementById('cartCheckoutForm')?.addEventListener('submit', function(e){
+  if(document.querySelectorAll('.item-cb:checked').length === 0){
+    e.preventDefault();
+    alert('Please select at least one item before checkout.');
+  }
+});
 </script>
 @endsection

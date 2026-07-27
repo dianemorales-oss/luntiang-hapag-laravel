@@ -4,11 +4,13 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Promotion;
+use App\Models\ClaimedCoupon;
 use App\Models\CustomerAddress;
 use App\Helpers\CartHelper;
 use App\Helpers\NotificationHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class CheckoutController extends Controller
 {
@@ -20,9 +22,8 @@ class CheckoutController extends Controller
 
         $userId = $request->session()->get('user_id');
         $cart = $request->session()->get('cart', []);
-        $selectedIds = $request->session()->get('selected_cart') ?? array_column($cart, 'id'); // fallback all selected
-        // If cart-actions using session selected, but we have simple cart selection all
-        $selectedIds = array_column($cart, 'id'); // for simplicity, all items are selected
+        $selectedIds = array_map('intval', (array) $request->input('sel', $request->session()->get('selected_cart', [])));
+        $request->session()->put('selected_cart', $selectedIds);
 
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty');
@@ -76,14 +77,14 @@ class CheckoutController extends Controller
         $promo = null;
         $discount = 0;
         if ($appliedPromoCode) {
-            $promo = Promotion::where('code', $appliedPromoCode)->where('is_active',1)->first();
+            $promo = $this->validClaimedPromo($userId, $appliedPromoCode);
             if ($promo) {
                 if ($promo->is_free_delivery) $deliveryFee = 0;
-                if ($promo->discount_type === 'percentage') {
-                    $discount = $subtotal * ($promo->discount_value/100);
-                } else {
-                    $discount = (float)$promo->discount_value;
-                }
+                $discount = $promo->discount_type === 'percentage'
+                    ? $subtotal * ($promo->discount_value/100)
+                    : (float)$promo->discount_value;
+            } else {
+                $request->session()->forget('applied_promo');
             }
         }
 
@@ -107,19 +108,29 @@ class CheckoutController extends Controller
         $productIds = array_column($cart, 'id');
         $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
 
+        $selectedIds = array_map('intval', (array) $request->session()->get('selected_cart', []));
+        if (empty($selectedIds)) {
+            return redirect()->route('cart.index')->with('error', 'No items selected');
+        }
+
         $cartItems = [];
         $subtotal = 0;
         foreach ($cart as $item) {
             $prod = $products[$item['id']] ?? null;
-            if (!$prod) continue;
+            if (!$prod || !in_array((int)$prod->id, $selectedIds, true)) continue;
             $qty = (int)$item['qty'];
             $line = (float)$prod->price * $qty;
             $cartItems[] = ['id'=>$prod->id,'name'=>$prod->name,'price'=>(float)$prod->price,'qty'=>$qty,'line_total'=>$line,'product'=>$prod];
             $subtotal += $line;
         }
 
+        if (empty($cartItems)) {
+            return redirect()->route('cart.index')->with('error', 'No selected cart items found');
+        }
+
         $deliveryMethod = $request->input('delivery_method', 'delivery');
         $paymentMethod = $request->input('payment_method', 'cod');
+        $paymentReference = trim($request->input('payment_reference', ''));
         $address = $request->input('address');
         $city = $request->input('city');
         $province = $request->input('province');
@@ -127,6 +138,23 @@ class CheckoutController extends Controller
         $deliveryNotes = $request->input('delivery_notes');
         $giftNote = $request->input('gift_note');
         $preferredTime = $request->input('preferred_time');
+
+        if (!in_array($paymentMethod, ['cod', 'gcash', 'maya', 'bank_transfer'], true)) {
+            return back()->with('error', 'Please select a valid payment method.')->withInput();
+        }
+
+        if (in_array($paymentMethod, ['gcash', 'maya'], true) && !preg_match('/^\d{11}$/', $paymentReference)) {
+            return back()->with('error', 'Please enter a valid 11-digit mobile number for ' . strtoupper($paymentMethod) . '.')->withInput();
+        }
+        if ($paymentMethod === 'bank_transfer' && !preg_match('/^\d{6,30}$/', $paymentReference)) {
+            return back()->with('error', 'Please enter a valid bank account number.')->withInput();
+        }
+
+        if ($paymentMethod !== 'cod' && $paymentReference !== '') {
+            $paymentLabel = ['gcash' => 'GCash', 'maya' => 'Maya', 'bank_transfer' => 'Bank Transfer'][$paymentMethod] ?? strtoupper($paymentMethod);
+            $paymentNote = "Payment {$paymentLabel} reference: {$paymentReference}";
+            $deliveryNotes = trim($deliveryNotes ? $deliveryNotes . "\n" . $paymentNote : $paymentNote);
+        }
 
         $isFreeZone = false;
         if ($deliveryMethod === 'pickup') {
@@ -142,14 +170,14 @@ class CheckoutController extends Controller
         $promo = null;
         $discount = 0;
         if ($appliedPromoCode) {
-            $promo = Promotion::where('code', $appliedPromoCode)->where('is_active',1)->first();
+            $promo = $this->validClaimedPromo($userId, $appliedPromoCode);
             if ($promo) {
                 if ($promo->is_free_delivery) $deliveryFee = 0;
-                if ($promo->discount_type === 'percentage') {
-                    $discount = $subtotal * ($promo->discount_value/100);
-                } else {
-                    $discount = (float)$promo->discount_value;
-                }
+                $discount = $promo->discount_type === 'percentage'
+                    ? $subtotal * ($promo->discount_value/100)
+                    : (float)$promo->discount_value;
+            } else {
+                $request->session()->forget('applied_promo');
             }
         }
 
@@ -221,13 +249,21 @@ class CheckoutController extends Controller
                 }
             }
 
-            // promo usage
+            // promo usage: mark claimed voucher as redeemed once.
             if ($promo) {
                 $promo->increment('used_count');
+                $claimedCoupon = ClaimedCoupon::where('user_id', $userId)->where('promotion_id', $promo->id)->first();
+                if ($claimedCoupon && Schema::hasColumn('claimed_coupons', 'used_at')) {
+                    $claimedCoupon->used_at = now();
+                    $claimedCoupon->save();
+                }
             }
 
-            // clear cart (only purchased items)
-            $request->session()->put('cart', []);
+            // clear only purchased/selected items; leave unselected cart items intact
+            $remainingCart = array_values(array_filter($cart, function($item) use ($selectedIds) {
+                return !in_array((int)$item['id'], $selectedIds, true);
+            }));
+            $request->session()->put('cart', $remainingCart);
             $request->session()->forget('applied_promo');
             $request->session()->forget('selected_cart');
             CartHelper::syncToDb($userId);
@@ -244,4 +280,17 @@ class CheckoutController extends Controller
             return back()->with('error', 'Order failed: ' . $e->getMessage());
         }
     }
+
+    private function validClaimedPromo(int $userId, ?string $code): ?Promotion
+    {
+        if (!$code) return null;
+        $promo = Promotion::where('code', $code)->where('is_active', 1)->first();
+        if (!$promo) return null;
+        if ($promo->expires_at && $promo->expires_at < now()->toDateString()) return null;
+        $claimedCoupon = ClaimedCoupon::where('user_id', $userId)->where('promotion_id', $promo->id)->first();
+        if (!$claimedCoupon) return null;
+        if (Schema::hasColumn('claimed_coupons', 'used_at') && !empty($claimedCoupon->used_at)) return null;
+        return $promo;
+    }
+
 }

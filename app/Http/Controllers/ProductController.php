@@ -46,8 +46,10 @@ class ProductController extends Controller
         }
 
         if ($viewMode === 'retail') {
-            $query->whereDoesntHave('category', function($q) {
-                $q->whereIn('slug', ['salad-mix-bundles', 'wholesale', 'family-packs', 'twin-packs']);
+            // Retail should only show single-cup lettuce varieties.
+            // Exclude mixed cups, bundles, packs, trays, boxes, and wholesale sacks.
+            $query->whereHas('category', function($q) {
+                $q->whereIn('slug', ['green-lettuce', 'red-lettuce']);
             })->where(function($q) {
                 $q->where('name', 'not like', '%Bundle%')
                   ->where('name', 'not like', '%Wholesale%')
@@ -55,7 +57,9 @@ class ProductController extends Controller
                   ->where('name', 'not like', '%Tray%')
                   ->where('name', 'not like', '%Box%')
                   ->where('name', 'not like', '%5-Cup%')
-                  ->where('name', 'not like', '%50-Cup%');
+                  ->where('name', 'not like', '%50-Cup%')
+                  ->where('name', 'not like', '%Mixed%')
+                  ->where('name', 'not like', '%Mix%');
             });
         } elseif ($viewMode === 'bundle') {
             $query->where(function($q) {
@@ -158,14 +162,11 @@ class ProductController extends Controller
         $canReview = false;
         $userId = $request->session()->get('user_id');
         if ($userId) {
-            // Allow logged-in users who bought the product to review
             $canReview = \App\Models\Order::where('user_id', $userId)
+                ->whereIn('status', ['delivered', 'completed'])
                 ->whereHas('items', function($q) use ($product){
                     $q->where('product_id', $product->id);
                 })->exists();
-            
-            // Allow all registered users to review for convenience but can be customized
-            $canReview = true; 
         }
 
         return view('products.show', compact('product', 'relatedProducts', 'productReviews', 'avg', 'totalReviews', 'canReview'));

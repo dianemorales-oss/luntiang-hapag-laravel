@@ -33,7 +33,9 @@ class AuthController extends Controller
             $guestCart = $request->session()->get('cart', []);
             CartHelper::mergeGuestCart($user->id, $guestCart);
 
-            return redirect()->route('profile.index');
+            $request->session()->regenerate();
+
+            return redirect()->route('products.index');
         }
 
         return back()->with('error', 'Invalid email/mobile number or password.')->withInput();

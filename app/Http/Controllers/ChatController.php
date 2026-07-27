@@ -21,6 +21,19 @@ class ChatController extends Controller
         return bin2hex(random_bytes(16));
     }
 
+    private function cleanMessageForDatabase(?string $message): string
+    {
+        $message = (string) $message;
+
+        // Some existing MySQL tables were created with utf8/utf8mb3 instead of
+        // utf8mb4, which rejects 4-byte emoji characters and causes SQL 1366.
+        // Strip those characters before saving chat messages so Live Chat works
+        // even before the charset migration is run locally.
+        $clean = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $message);
+
+        return $clean === null ? $message : trim($clean);
+    }
+
     private function getCustomerName(Request $request, $chatKey)
     {
         if ($request->session()->has('user_id')) {
@@ -47,7 +60,7 @@ class ChatController extends Controller
                 // Store assistant messages as "admin" for compatibility with older
                 // live_chat_messages tables that only allow customer/admin sender values.
                 'sender'=>'admin',
-                'message'=>$greeting,
+                'message'=>$this->cleanMessageForDatabase($greeting),
             ]);
             $messages = LiveChatMessage::where('chat_key', $chatKey)->orderBy('id')->get();
         }
@@ -68,6 +81,7 @@ class ChatController extends Controller
         }
 
         $messageText = trim($request->input('message',''));
+        $messageTextForDb = $this->cleanMessageForDatabase($messageText);
         $image = $request->file('image');
 
         if (empty($messageText) && !$image) {
@@ -96,7 +110,7 @@ class ChatController extends Controller
             'user_id'=>$userId,
             'customer_name'=>$customerName,
             'sender'=>'customer',
-            'message'=>$messageText,
+            'message'=>$messageTextForDb,
             'image_path'=>$imagePath,
         ]);
 
@@ -114,7 +128,7 @@ class ChatController extends Controller
                 // Store assistant messages as "admin" for compatibility with older
                 // live_chat_messages tables that only allow customer/admin sender values.
                 'sender'=>'admin',
-                'message'=>$reply,
+                'message'=>$this->cleanMessageForDatabase($reply),
             ]);
             $botReplies[] = $botMsg;
         }

@@ -11,12 +11,13 @@ class HomeController extends Controller
     {
         try {
             $featured = Product::where('is_active', 1)
-                ->orderByDesc('is_new')
-                ->orderByDesc('is_featured')
+                ->where('is_featured', 1)
                 ->orderByDesc('is_best_seller')
                 ->orderByDesc('created_at')
-                ->limit(24)
-                ->get();
+                ->limit(12)
+                ->get()
+                ->unique('slug')
+                ->values();
         } catch (\Exception $e) {
             // fallback to catalog
             $catalog = \App\Helpers\LettuceCatalog::get();
