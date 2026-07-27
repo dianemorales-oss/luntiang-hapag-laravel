@@ -18,6 +18,18 @@ class HomeController extends Controller
                 ->get()
                 ->unique('slug')
                 ->values();
+
+            // Existing databases may not have featured flags set yet.
+            // Keep the homepage populated while the repair migration is pending.
+            if ($featured->isEmpty()) {
+                $featured = Product::where('is_active', 1)
+                    ->orderByDesc('is_best_seller')
+                    ->orderByDesc('created_at')
+                    ->limit(12)
+                    ->get()
+                    ->unique('slug')
+                    ->values();
+            }
         } catch (\Exception $e) {
             // fallback to catalog
             $catalog = \App\Helpers\LettuceCatalog::get();
