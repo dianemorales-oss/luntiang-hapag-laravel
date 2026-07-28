@@ -259,6 +259,12 @@
         if(Array.isArray(data.botReplies)){
           data.botReplies.forEach(bot => appendMessage(bot));
         }
+        // Typed requests such as "talk to an agent" can change mode inside
+        // ChatbotEngine, so keep the toggle in sync with the server result.
+        if(data.mode){
+          currentMode = data.mode;
+          updateModeUI(currentMode === 'agent');
+        }
       }
     } catch(err) {
       console.error(err);
@@ -291,18 +297,32 @@
     }
   }
 
+  let currentMode = {{ ($isAgentMode ?? false) ? "'agent'" : "'assistant'" }};
+
   async function switchMode(mode){
+    if(mode === currentMode) return;
     try{
+      modeAssistantBtn.disabled = true;
+      modeAgentBtn.disabled = true;
       const formData = new FormData();
       formData.append('mode', mode);
       formData.append('gk', isLoggedIn ? '' : (sessionStorage.getItem('guest_chat_key') || chatKey));
       const res = await fetch(modeUrl, { method:'POST', body: formData, headers:{ 'X-CSRF-TOKEN': csrfToken } });
       const data = await res.json();
       if(data.ok){
-        updateModeUI(mode==='agent');
+        currentMode = data.mode || mode;
+        updateModeUI(currentMode === 'agent');
         setTimeout(poll, 500);
+      } else {
+        alert(data.error || 'Unable to change chat mode. Please try again.');
       }
-    }catch(e){ console.error(e); alert('Unable to change chat mode. Please try again.'); }
+    }catch(e){
+      console.error(e);
+      alert('Unable to change chat mode. Please try again.');
+    } finally {
+      modeAssistantBtn.disabled = false;
+      modeAgentBtn.disabled = false;
+    }
   }
 
   if(modeAssistantBtn) modeAssistantBtn.addEventListener('click', ()=> switchMode('assistant'));
@@ -332,8 +352,12 @@
           }
         });
       }
-      // Also check bot state to update UI if admin switched via backend
-      // Could poll separate endpoint, but we use chat state inferred
+      // Poll returns the authoritative state. This keeps the buttons correct
+      // after an admin agent replies/takes over in the admin panel.
+      if(data.mode && data.mode !== currentMode){
+        currentMode = data.mode;
+        updateModeUI(currentMode === 'agent');
+      }
     } catch(err) {
       // retry silently
     }

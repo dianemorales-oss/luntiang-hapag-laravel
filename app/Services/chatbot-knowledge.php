@@ -15,8 +15,25 @@ return [
         'track my package' => 'track my order', 'buy' => 'order',
         'price' => 'pricing', 'sign in' => 'log in',
         'create a new account' => 'create an account',
+
+        // Common Filipino / Taglish and informal customer phrases.
+        'pano umorder' => 'how to order', 'paano umorder' => 'how to order',
+        'pano bumili' => 'how to order', 'paano bumili' => 'how to order',
+        'san order' => 'track my order', 'nasaan order' => 'where is my order',
+        'hm delivery' => 'delivery fee', 'magkano delivery' => 'delivery fee',
+        'may lettuce' => 'what lettuce is available', 'anong available' => 'what is available',
+        'pwede cod' => 'cash on delivery', 'may cod' => 'cash on delivery',
+        'gusto ko kumausap ng tao' => 'talk to a live agent',
+        'kausap na tao' => 'talk to a live agent', 'customer service' => 'talk to a live agent',
+        'need support' => 'talk to a live agent', 'human please' => 'talk to a live agent',
+        'real person' => 'talk to a live agent', 'someone help me' => 'talk to a live agent',
+        'gud pm' => 'good afternoon', 'good pm' => 'good afternoon',
+        'salamat' => 'thank you', 'tysm' => 'thank you',
+        // Frequent short-form and spelling variants.
+        'lettus' => 'lettuce', 'delivry' => 'delivery', 'deliveri' => 'delivery',
+        'ordr' => 'order', 'paymnt' => 'payment', 'refnd' => 'refund',
     ],
-    'reactivate_keywords' => ['talk to the assistant','back to the assistant','back to the bot'],
+    'reactivate_keywords' => ['talk to the assistant','back to the assistant','back to the bot','assistant again','balik sa assistant'],
     'topic_word_aliases' => [
         'romaine'=>'romaine_info','batavia'=>'batavia_info','bianca'=>'bianca_info',
         'dabi'=>'dabi_info','red'=>'red_info','estrosa'=>'estrosa_info','olmetie'=>'olmetie_info',
@@ -27,10 +44,11 @@ return [
 
     ],
     'referential_pronouns' => ['it','this','that','they','them','those','these'],
-    'greetings' => ['hi','hello','hey','good morning','good afternoon','greetings','sup','yo'],
+    'greetings' => ['hi','hello','hey','good morning','good afternoon','good evening','greetings','sup','yo','kumusta','kamusta'],
     'greeting_responses' => [
-        "Welcome to Luntiang H.A.P.A.G.! I can help with orders, products, delivery, and more. What can I help you with today?",
-        "Hello! I'm your Luntiang H.A.P.A.G. assistant. Ask me about our hydroponic lettuce, orders, delivery, or anything else!",
+        "Hello! 👋 Welcome to Luntiang H.A.P.A.G. How can I help you today?",
+        "Hi! I'm your Luntiang H.A.P.A.G. Assistant. I can help with fresh lettuce, orders, delivery, payments, and more.",
+        "Good day! 😊 What can I help you with today? You may ask in English, Filipino, or Taglish.",
     ],
     'gratitude' => ['thanks','thank you','ty','thx','appreciate it'],
     'gratitude_responses' => ["You're welcome! Enjoy your fresh lettuce!","Happy to help! Let me know if you need anything else."],
@@ -42,8 +60,8 @@ return [
 
     ],
     'fallback_responses' => [
-        "I'm not sure I understand. Could you rephrase? You can ask about products, orders, delivery, storage, or account help.",
-        "Can you tell me more? Is this about a product, an order, delivery, or your account?",
+        "I'm sorry, I don't have that information at the moment. Could you share a little more detail? I can help with products, orders, delivery, storage, payments, or account help. If needed, I can also connect you with a support representative.",
+        "Could you tell me a little more? Is this about a product, an order, delivery, payment, or your account? If I cannot help, I can connect you with a live support representative.",
     ],
     'services' => [
         'support_ticket' => [
@@ -121,7 +139,9 @@ return [
         ['id'=>'login_help','group'=>'account','auth_aware'=>true,'keywords'=>['log in','login help','how to login','how do i log in'],'answer'=>"Go to the Login page. Enter your email and password, then click Sign In. If you forgot your password, click 'Forgot Password?' to reset it."],
         ['id'=>'forgot_password','group'=>'account','auth_aware'=>true,'keywords'=>['forgot password','reset password','password reset','cant log in','how do i reset'],'answer'=>"On the Login page, click 'Forgot Password?'. Enter your email and click 'Send Reset Link'. Follow the instructions to create a new password."],
         ['id'=>'change_password','group'=>'account','keywords'=>['change password','update password','how do i change'],'answer'=>"Log into your account, go to Dashboard > Profile > Change Password. Enter your current password, new password, confirm, and save."],
-        ['id'=>'edit_profile','group'=>'account','keywords'=>['update profile','edit profile','how do i update'],'answer'=>"Log into your account, go to Dashboard > Profile > Edit Profile. Update your information and save changes."],
+        ['id'=>'edit_profile','group'=>'account','keywords'=>['update profile','edit profile','change email','change my email','change address','change delivery address','how do i update'],'answer'=>"Log into your account, go to Dashboard > Profile > Edit Profile. Update your email, phone number, or saved address and select Save Changes. If an order is already being prepared, please contact support so they can verify whether its delivery address can still be changed."],
+        ['id'=>'delete_account','group'=>'account','keywords'=>['delete account','remove account','close account','deactivate account'],'answer'=>"I'm sorry to see you go. For account deletion, please contact our support team so they can verify your request and protect your account information. You may also use Talk to Agent for help."],
+        ['id'=>'failed_order','domain'=>'order','keywords'=>['failed order','order failed','checkout failed','payment failed','cannot order','cant order'],'answer'=>"I'm sorry your order did not go through. Please check your payment details and try checkout again. If you were charged or the issue continues, contact support with the time of the attempt and any order reference so we can verify it."],
         ['id'=>'return_eligibility','domain'=>'return','keywords'=>['return eligibility','eligible for return','can i return','am i eligible'],'answer'=>"You can return if: lettuce arrived wilted/damaged, wrong product delivered, or items missing. Must request within 24 hours of delivery."],
         ['id'=>'return_processing','domain'=>'return','keywords'=>['return time','refund time','how long return','return processing','how long does a return'],'answer'=>"Returns are reviewed within 1-2 business days. Approved refunds processed within 3-5 business days. Replacement orders are prioritized for same-day harvest."],
         ['id'=>'replacement_info','domain'=>'return','keywords'=>['replacement','exchange','send replacement','can i get a replacement'],'answer'=>"For damaged or wrong items, you can request a replacement. We'll harvest a fresh batch and deliver it at no extra cost."],
