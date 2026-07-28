@@ -42,12 +42,13 @@ After step 4 you can disconnect the internet permanently.
 
 ## What's inside
 
-**Overwrites 6 existing files**
+**Overwrites 7 existing files**
 
 | File | Why |
 |---|---|
 | `composer.json` | Pins Composer to PHP 8.2 (`config.platform.php`) |
 | `composer.lock` | Re-resolved for PHP 8.2 — Symfony 8.1 → 7.4 |
+| `app/Http/Controllers/Admin/ReportController.php` | MySQL-only `DATE_FORMAT()` crashed `/admin/reports` on SQLite — now works on both |
 | `resources/views/layouts/app.blade.php` | CDN tags → local include |
 | `resources/views/admin/layouts/app.blade.php` | CDN tags → local include |
 | `resources/views/admin/auth/login.blade.php` | CDN tags → local include |
@@ -84,18 +85,34 @@ your `.env` and breaks routing.
 ## Verified
 
 Tested on a fresh clone of your repo with this folder merged in, running inside
-an isolated network namespace with no internet:
+an isolated network namespace with **no internet at all**:
 
 ```
-vendor/ compatible with PHP 8.2 ....... PHP_VERSION_ID >= 80200
-Admin accounts ........................ 1
+internet reachability (proves the test is real)
+  cdn.tailwindcss.com .................. UNREACHABLE
+  fonts.googleapis.com ................. UNREACHABLE
 
-200  /          200  /products   200  /cart     200  /about
-200  /faq       200  /login      200  /register 200  /admin/login
+vendor/ compatible with PHP 8.2 ........ PHP_VERSION_ID >= 80200
+Admin accounts ......................... 1
 
-200  /assets/tailwind.min.js
-200  /assets/nunito.css
-200  /assets/fonts/nunito-latin.woff2
+customer pages
+  200 /   200 /products   200 /cart   200 /about
+  200 /faq   200 /login   200 /register   200 /product/romaine-lettuce
+
+admin pages (all 10)
+  200 /admin/login      200 /admin/dashboard   200 /admin/reports
+  200 /admin/products   200 /admin/orders      200 /admin/customers
+  200 /admin/tickets    200 /admin/reviews     200 /admin/promotions
+  200 /admin/live-chat  200 /admin/feedback
+
+dynamic features
+  add to cart (AJAX) ... {"success":true,"message":"Added to cart"}
+  chatbot .............. replied "FREE delivery within Nostalji Subdivision..."
+
+local assets
+  200 /assets/tailwind.min.js
+  200 /assets/nunito.css
+  200 /assets/fonts/nunito-latin.woff2
 ```
 
 Full troubleshooting (missing `pdo_sqlite`, `storage:link` errors, PATH issues)

@@ -102,11 +102,20 @@ class ReportController extends Controller
         }
 
         // 12-month monthly revenue
+        //
+        // DATE_FORMAT() is MySQL-only and crashes on SQLite with
+        // "no such function: DATE_FORMAT". SQLite uses strftime() instead.
+        // Pick the right expression for whichever driver is configured so this
+        // page works on both MySQL (WAMP/production) and SQLite (offline).
+        $ymExpr = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', updated_at)"
+            : 'DATE_FORMAT(updated_at, "%Y-%m")';
+
         $monthly12Raw = DB::table('orders')
-            ->select(DB::raw('DATE_FORMAT(updated_at, "%Y-%m") as ym'), DB::raw('COALESCE(SUM(total),0) as rev'), DB::raw('COUNT(*) as cnt'))
+            ->select(DB::raw("$ymExpr as ym"), DB::raw('COALESCE(SUM(total),0) as rev'), DB::raw('COUNT(*) as cnt'))
             ->where('updated_at', '>=', date('Y-m-01', strtotime('-11 months', $ts)))
             ->where('status', 'completed')
-            ->groupBy(DB::raw('DATE_FORMAT(updated_at, "%Y-%m")'))
+            ->groupBy(DB::raw($ymExpr))
             ->orderBy('ym')
             ->get()
             ->keyBy('ym');
