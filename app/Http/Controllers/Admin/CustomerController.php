@@ -11,6 +11,10 @@ use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
+    /**
+     * Active customers only. The SoftDeletes global scope on User keeps
+     * deleted accounts out of this list and all normal User statistics.
+     */
     public function index(Request $request)
     {
         $emailParam = trim($request->get('email', ''));
@@ -83,5 +87,62 @@ class CustomerController extends Controller
         return view('admin.customers.index', compact(
             'customer', 'tickets', 'orders', 'returns', 'feedbacks', 'activity', 'stats', 'emailParam', 'search', 'customers'
         ));
+    }
+
+    /** Display only soft-deleted accounts. */
+    public function deleted(Request $request)
+    {
+        $search = trim($request->string('q')->toString());
+
+        $deletedCustomers = User::onlyTrashed()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return view('admin.customers.deleted', compact('deletedCustomers', 'search'));
+    }
+
+    /** Soft-delete an active customer without touching related records. */
+    public function destroy(Request $request, int $id)
+    {
+        $customer = User::findOrFail($id);
+        $customer->deleted_by = $request->session()->get('admin_email', 'Admin');
+        $customer->save();
+        $customer->delete();
+
+        return redirect()->route('admin.customers.index')
+            ->with('success', "Customer account for {$customer->first_name} {$customer->last_name} was deleted.");
+    }
+
+    /** Restore a soft-deleted account and preserve all linked records. */
+    public function restore(int $id)
+    {
+        $customer = User::onlyTrashed()->findOrFail($id);
+        $customer->restore();
+        $customer->deleted_by = null;
+        $customer->save();
+
+        return redirect()->route('admin.customers.deleted')
+            ->with('success', "Customer account for {$customer->first_name} {$customer->last_name} was restored.");
+    }
+
+    /**
+     * Irreversibly remove a previously deleted account. Database foreign keys
+     * apply their configured cascade/null behavior to dependent records.
+     */
+    public function forceDelete(int $id)
+    {
+        $customer = User::onlyTrashed()->findOrFail($id);
+        $name = trim("{$customer->first_name} {$customer->last_name}");
+        $customer->forceDelete();
+
+        return redirect()->route('admin.customers.deleted')
+            ->with('success', "Customer account for {$name} was permanently deleted.");
     }
 }

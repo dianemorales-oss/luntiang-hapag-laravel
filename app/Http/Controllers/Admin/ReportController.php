@@ -144,6 +144,7 @@ class ReportController extends Controller
         // Customer growth last 30 days
         $cust30Raw = DB::table('users')
             ->select(DB::raw('DATE(created_at) as d'), DB::raw('COUNT(*) as cnt'))
+            ->whereNull('deleted_at')
             ->whereBetween(DB::raw('DATE(created_at)'), [$chart30Start, $chartEnd])
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('d')
@@ -195,6 +196,7 @@ class ReportController extends Controller
         // Top customers and completed-order detail table for the reporting module.
         $topCustomers = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
+            ->whereNull('users.deleted_at')
             ->where('orders.status', 'completed')
             ->selectRaw("CONCAT(users.first_name, ' ', users.last_name) as customer_name, users.email, COUNT(orders.id) as order_count, COALESCE(SUM(orders.total),0) as total_spent")
             ->groupBy('users.id', 'users.first_name', 'users.last_name', 'users.email')
