@@ -197,19 +197,12 @@ class ChatController extends Controller
             $botReplies[] = $botMsg;
         }
 
-        // ChatbotEngine may change bot_active itself when a customer asks for a
-        // human agent or to return to the assistant. Return the authoritative
-        // mode so the client buttons always match the conversation state.
-        $botState = ChatBotState::where('chat_key', $chatKey)->first();
-        $mode = ($botState && !$botState->bot_active) ? 'agent' : 'assistant';
-
         return response()->json([
             'ok'=>true,
             'chatKey'=>$chatKey,
             'customerMessage'=>$msg,
             'botReplies'=>$botReplies,
             'escalate'=>$result['escalate'] ?? false,
-            'mode'=>$mode,
         ]);
     }
 
@@ -223,13 +216,9 @@ class ChatController extends Controller
 
         $messages = LiveChatMessage::where('chat_key',$chatKey)->where('id','>',$lastId)->orderBy('id')->get();
 
-        $botState = ChatBotState::where('chat_key', $chatKey)->first();
-
         return response()->json([
             'messages'=>$messages,
             'chatKey'=>$chatKey,
-            // This also reflects a takeover by an administrator in another tab.
-            'mode'=>($botState && !$botState->bot_active) ? 'agent' : 'assistant',
         ]);
     }
 }

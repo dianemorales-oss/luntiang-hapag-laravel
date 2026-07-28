@@ -129,7 +129,7 @@ class ChatbotEngine
             $context = $this->getConversationContext();
             $this->setState(false, null, null);
             return [
-                'replies' => ["Of course! I'd be happy to help first if I can. If your concern needs additional assistance, I can connect you with one of our live support representatives. I've switched this chat to Agent mode; please share any helpful order details while an agent joins."],
+                'replies' => ["I couldn't fully resolve this myself, so I'll connect you with one of our customer support representatives. Someone will jump into this chat shortly — feel free to describe your issue in the meantime so they have context. If you'd rather keep chatting with me instead, just say \"talk to the assistant again\"."],
                 'escalate' => true,
                 'context' => $context,
             ];

@@ -56,7 +56,6 @@
           $ordersActive = ($routeUri === 'admin.orders.index');
           $reportsActive = ($routeUri === 'admin.reports.index');
           $customersActive = ($routeUri === 'admin.customers.index');
-          $deletedCustomersActive = ($routeUri === 'admin.customers.deleted');
           $promotionsActive = ($routeUri === 'admin.promotions.index');
           $reviewsActive = ($routeUri === 'admin.reviews.index');
         @endphp
@@ -89,12 +88,6 @@
         <a href="{{ route('admin.customers.index') }}" class="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl text-sm {{ $customersActive ? 'bg-[#17611f] text-white font-semibold' : 'text-gray-300 hover:bg-[#14521a] hover:text-white transition-colors font-medium' }}">
           <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 10-8 0"/></svg>
           <span class="flex-1">Customers</span>
-        </a>
-
-        <!-- Deleted Customers -->
-        <a href="{{ route('admin.customers.deleted') }}" class="flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl text-sm {{ $deletedCustomersActive ? 'bg-[#17611f] text-white font-semibold' : 'text-gray-300 hover:bg-[#14521a] hover:text-white transition-colors font-medium' }}">
-          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-1.4 12.1a2 2 0 01-2 1.9H8.4a2 2 0 01-2-1.9L5 7m4 4v6m6-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-10 0h14"/></svg>
-          <span class="flex-1">Deleted Customer Accounts</span>
         </a>
 
         <!-- Promotions -->

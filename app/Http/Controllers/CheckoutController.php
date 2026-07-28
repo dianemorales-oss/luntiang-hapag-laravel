@@ -91,7 +91,7 @@ class CheckoutController extends Controller
         $total = max(0, $subtotal + $deliveryFee - $discount);
         $isFreeDeliveryZone = $isFreeZone;
 
-        return view('checkout.index', compact('cartItems', 'subtotal', 'deliveryFee', 'discount', 'total', 'savedAddresses', 'defaultAddr', 'defaultAddress', 'defaultCity', 'defaultProvince', 'defaultZip', 'isFreeZone', 'promo', 'user', 'isFreeDeliveryZone'));
+        return view('checkout.index', compact('cartItems','subtotal','deliveryFee','discount','total','savedAddresses','defaultAddress','defaultCity','defaultProvince','defaultZip','isFreeZone','promo','user','isFreeDeliveryZone'));
     }
 
     public function store(Request $request)

@@ -161,14 +161,7 @@
                   <td class="p-3 font-semibold">{{ $c->return_count }}</td>
                   <td class="p-3 text-xs text-[#9e9e9e] font-medium">{{ $c->created_at->format('M j, Y') }}</td>
                   <td class="p-3">
-                    <div class="flex items-center gap-3">
-                      <a href="?email={{ urlencode($c->email) }}" class="text-[#17611f] font-bold text-xs hover:underline">View</a>
-                      <form method="POST" action="{{ route('admin.customers.destroy', $c->id) }}" onsubmit="return confirm('Delete the account for {{ addslashes($c->first_name . ' ' . $c->last_name) }}? The account will be moved to Deleted Customer Accounts and can be restored later.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-700 font-bold text-xs hover:underline">Delete</button>
-                      </form>
-                    </div>
+                    <a href="?email={{ urlencode($c->email) }}" class="text-[#17611f] font-bold text-xs hover:underline">View</a>
                   </td>
                 </tr>
               @endforeach

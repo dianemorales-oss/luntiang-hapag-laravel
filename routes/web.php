@@ -212,10 +212,6 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::post('/orders/{id}/status', [App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update');
 
     Route::match(['get', 'post'], '/customers', [App\Http\Controllers\Admin\CustomerController::class, 'index'])->name('customers.index');
-    Route::get('/customers/deleted', [App\Http\Controllers\Admin\CustomerController::class, 'deleted'])->name('customers.deleted');
-    Route::delete('/customers/{id}', [App\Http\Controllers\Admin\CustomerController::class, 'destroy'])->name('customers.destroy');
-    Route::post('/customers/{id}/restore', [App\Http\Controllers\Admin\CustomerController::class, 'restore'])->name('customers.restore');
-    Route::delete('/customers/{id}/force', [App\Http\Controllers\Admin\CustomerController::class, 'forceDelete'])->name('customers.forceDelete');
     Route::get('/admin-customers.php', [App\Http\Controllers\Admin\CustomerController::class, 'index']);
 
     Route::get('/tickets', [App\Http\Controllers\Admin\TicketController::class, 'index'])->name('tickets.index');
