@@ -2,6 +2,10 @@
 @section('title', 'Sales Analytics | Admin')
 @section('header', 'Sales Analytics')
 @section('content')
+<style>
+  /* Canvas drawing resolution must never control the layout size. */
+  #mainChart { display:block; width:100% !important; height:100% !important; max-width:100%; }
+</style>
 
 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
   <div>
@@ -144,9 +148,18 @@
   </div>
 </div>
 
+
+<!-- Report detail tables -->
+<div class="grid xl:grid-cols-3 gap-6 mb-6">
+  <div class="xl:col-span-1 bg-white rounded-2xl border p-5 shadow-sm"><h2 class="font-black mb-4">Top Customers</h2>
+    @forelse($topCustomers as $customer)<div class="flex justify-between gap-3 border-b last:border-0 py-3"><div class="min-w-0"><p class="text-sm font-bold truncate">{{ $customer->customer_name }}</p><p class="text-[11px] text-[#5a7a5c] truncate">{{ $customer->email }} · {{ $customer->order_count }} completed</p></div><b class="text-sm text-[#17611f] whitespace-nowrap">₱{{ number_format($customer->total_spent,2) }}</b></div>@empty <p class="text-sm text-[#9e9e9e] py-6 text-center">No completed-order customers in this period.</p>@endforelse
+  </div>
+  <div class="xl:col-span-2 bg-white rounded-2xl border overflow-hidden shadow-sm"><div class="p-5 border-b"><h2 class="font-black">Completed Orders · {{ date('F Y',$ts) }}</h2><p class="text-xs text-[#5a7a5c] mt-1">Database-fresh completed transactions only.</p></div><div class="overflow-x-auto"><table class="w-full text-xs"><thead class="bg-[#f4faf5] text-[#5a7a5c] uppercase"><tr><th class="p-3 text-left">Order</th><th class="p-3 text-left">Customer</th><th class="p-3 text-left">Products</th><th class="p-3 text-left">Amount</th><th class="p-3 text-left">Payment</th><th class="p-3 text-left">Completed</th></tr></thead><tbody>@forelse($reportOrders as $order)<tr class="border-t"><td class="p-3 font-bold">{{ $order->order_number }}</td><td class="p-3">{{ $order->customer_name }}</td><td class="p-3">{{ $order->items->sum('quantity') }} items</td><td class="p-3 font-bold text-[#17611f]">₱{{ number_format($order->total,2) }}</td><td class="p-3">{{ strtoupper($order->payment_method) }}</td><td class="p-3">{{ $order->updated_at->format('M j, Y') }}</td></tr>@empty<tr><td colspan="6" class="p-8 text-center text-[#9e9e9e]">No completed orders for this period.</td></tr>@endforelse</tbody></table></div></div>
+</div>
+
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script>
+<script src="{{ asset('assets/chart.umd.min.js') }}"></script>
+<script type="text/plain" id="legacyReportChartRenderer">
 const daily7 = @json($daily7Filled);
 const daily30 = @json($daily30Filled);
 const monthly12 = @json($monthly12Filled);
@@ -381,7 +394,88 @@ document.addEventListener('DOMContentLoaded', ()=>{
   reportDropdown.value='revenue';
   currentReportType='revenue';
   updateView();
+
+  // Admin Orders emits this after a Completed status is saved. Reloading this
+  // server-rendered report retrieves a new completed-only aggregate from MySQL.
+  window.addEventListener('storage', event => {
+    if (event.key === 'luntiang:completed-order-updated') {
+      setTimeout(() => window.location.reload(), 750);
+    }
+  });
+  // Protect against changes made from a different browser/device as well.
+  setInterval(() => window.location.reload(), 30000);
 });
+
+</script>
+<script>
+// Dependency-free chart renderer: keeps Sales Analytics visible even when a CDN,
+// extension, or browser policy prevents Chart.js from initializing.
+(function () {
+  const reportRows = @json($daily7Filled);
+  const reportRows30 = @json($daily30Filled);
+  const reportRows12 = @json($monthly12Filled);
+  const fallbackBestSellers = @json($bestSellers);
+  const fallbackCategories = @json($categorySales);
+  const fallbackStatuses = @json($statusBreakdown);
+  const fallbackDelivery = {delivery: @json($deliveryCount), pickup: @json($pickupCount)};
+  const fallbackLowSelling = @json($lowSelling ?? []);
+  let fallbackRange = '7';
+  function drawSalesFallback() {
+    const canvas = document.getElementById('mainChart');
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 10 || rect.height < 10) return;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.floor(rect.width * ratio); canvas.height = Math.floor(rect.height * ratio);
+    const ctx = canvas.getContext && canvas.getContext('2d'); if (!ctx) return; ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const w = rect.width, h = rect.height, pad = {l:58,r:22,t:30,b:48};
+    ctx.clearRect(0,0,w,h); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+    const selectedReport = document.getElementById('reportTypeDropdown')?.value || 'revenue';
+    const selectedRange = fallbackRange;
+    let rows = selectedRange === '30' ? reportRows30 : (selectedRange === '12m' ? reportRows12 : reportRows);
+    let labels = rows.map(x => x.short || x.label || '');
+    let values = rows.map(x => Number(x.rev || 0));
+    if (selectedReport === 'orders') values = rows.map(x => Number(x.cnt || 0));
+    if (selectedReport === 'bestseller') { labels = fallbackBestSellers.map(x => x.product_name || 'Product'); values = fallbackBestSellers.map(x => Number(x.revenue || 0)); }
+    if (selectedReport === 'category') { labels = fallbackCategories.map(x => x.name || 'Category'); values = fallbackCategories.map(x => Number(x.rev || 0)); }
+    if (selectedReport === 'status') { labels = fallbackStatuses.map(x => x.status || 'Status'); values = fallbackStatuses.map(x => Number(x.cnt || 0)); }
+    if (selectedReport === 'delivery') { labels = ['Delivery','Pick-Up']; values = [Number(fallbackDelivery.delivery), Number(fallbackDelivery.pickup)]; }
+    if (selectedReport === 'lowselling') { labels = fallbackLowSelling.map(x => x.product_name || 'Product'); values = fallbackLowSelling.map(x => Number(x.total_qty || 0)); }
+    const max = Math.max(...values, 1);
+    const graphType = document.getElementById('graphTypeDropdown')?.value || 'bar';
+    const innerW=w-pad.l-pad.r, innerH=h-pad.t-pad.b;
+    if(graphType==='pie') { let total=values.reduce((a,b)=>a+b,0)||1, angle=-Math.PI/2; values.forEach((value,i)=>{let slice=value/total*Math.PI*2;ctx.fillStyle=['#17611f','#52b788','#f0a500','#1976d2','#9c27b0','#ef6c00'][i%6];ctx.beginPath();ctx.moveTo(w/2,h/2);ctx.arc(w/2,h/2,Math.min(innerW,innerH)/2.5,angle,angle+slice);ctx.closePath();ctx.fill();angle+=slice;}); }
+    else { ctx.strokeStyle='#dfe9df';ctx.lineWidth=1;ctx.font='11px Nunito, sans-serif';ctx.fillStyle='#5a7a5c';for(let i=0;i<=4;i++){const y=pad.t+innerH*i/4;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText(Math.round(max*(1-i/4)).toLocaleString(),5,y+4);} const step=innerW/Math.max(values.length,1),bw=Math.max(12,step*.55);
+      if(graphType==='horizontalBar'){ values.forEach((value,i)=>{const bh=Math.max(16,innerH/values.length*.55),y=pad.t+i*(innerH/values.length)+(innerH/values.length-bh)/2,bar=innerW*(value/max);ctx.fillStyle='#17611f';ctx.fillRect(pad.l,y,bar,bh);ctx.fillStyle='#5a7a5c';ctx.textAlign='left';ctx.fillText(labels[i]||'',pad.l+bar+5,y+bh/2+4);}); }
+      else if(graphType==='line'){ctx.strokeStyle='#17611f';ctx.lineWidth=3;ctx.beginPath();values.forEach((value,i)=>{const x=pad.l+i*step+step/2,y=pad.t+innerH-innerH*(value/max);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();}
+      else {values.forEach((value,i)=>{const bh=innerH*(value/max),x=pad.l+i*step+(step-bw)/2,y=pad.t+innerH-bh;ctx.fillStyle='#17611f';ctx.fillRect(x,y,bw,bh);ctx.fillStyle='#5a7a5c';ctx.textAlign='center';ctx.fillText(labels[i]||'',x+bw/2,h-20);});}
+    }
+    ctx.textAlign='left';ctx.fillStyle='#17611f';ctx.font='bold 12px Nunito, sans-serif';ctx.fillText((selectedReport === 'bestseller' ? 'Best-Selling Products Revenue' : selectedReport === 'orders' ? 'Completed Orders' : 'Completed Revenue (₱)') + ' — ' + (selectedRange==='12m'?'12 months':selectedRange+' days'),pad.l,pad.t-10);
+  }
+  window.addEventListener('resize', drawSalesFallback);
+  window.addEventListener('load', () => setTimeout(drawSalesFallback, 100));
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(drawSalesFallback, 300);
+    document.getElementById('reportTypeDropdown')?.addEventListener('change', event => {
+      const all = event.target.value === 'all';
+      document.getElementById('focusCard')?.classList.toggle('hidden', all);
+      document.getElementById('allReportsGrid')?.classList.toggle('hidden', !all);
+      if (!all) setTimeout(drawSalesFallback, 20);
+    });
+    document.querySelectorAll('.range-btn').forEach(btn => btn.addEventListener('click', () => {
+      fallbackRange = btn.dataset.range || '7';
+      document.querySelectorAll('.range-btn').forEach(pill => {
+        const active = pill === btn;
+        pill.classList.toggle('active', active); pill.classList.toggle('bg-[#0d3311]', active); pill.classList.toggle('text-white', active);
+        pill.classList.toggle('text-[#3a5a3c]', !active);
+      });
+      drawSalesFallback();
+    }));
+    // The native renderer is a bar chart; graph style selection remains available
+    // without causing another chart instance to resize the canvas.
+    document.getElementById('graphTypeDropdown')?.addEventListener('change', () => drawSalesFallback());
+  });
+})();
 </script>
 @endpush
 @endsection

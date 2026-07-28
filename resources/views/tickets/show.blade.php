@@ -79,13 +79,15 @@
           </div>
         </div>
         <div class="flex flex-wrap gap-3 pt-1 pl-11">
-          <form method="GET" action="{{ route('tickets.close',['id'=>$ticket->id]) }}" onsubmit="return confirm('Close this ticket?\n\nOnce closed, no additional replies can be added.');">
+          <form method="POST" action="{{ route('tickets.close',['id'=>$ticket->id]) }}" onsubmit="return confirm('Close this ticket?\n\nOnce closed, no additional replies can be added.');">
+            @csrf
             <button type="submit" class="px-5 py-2.5 rounded-full bg-[#17611f] text-white text-sm font-bold hover:bg-[#14521a] transition-colors flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               Yes, Close Ticket
             </button>
           </form>
-          <form method="GET" action="{{ route('tickets.reopen',['id'=>$ticket->id]) }}" onsubmit="return confirm('Reopen this ticket?');">
+          <form method="POST" action="{{ route('tickets.reopen',['id'=>$ticket->id]) }}" onsubmit="return confirm('Reopen this ticket?');">
+            @csrf
             <button type="submit" class="px-5 py-2.5 rounded-full border border-gray-300 text-[#1a2e1c] text-sm font-bold hover:bg-gray-50 transition-colors">No, I Still Need Help</button>
           </form>
         </div>

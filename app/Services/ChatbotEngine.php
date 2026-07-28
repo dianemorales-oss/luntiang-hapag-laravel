@@ -135,6 +135,24 @@ class ChatbotEngine
             ];
         }
 
+        // Live product availability and price answers must come from the database,
+        // not from the static knowledge text, so customer answers stay accurate.
+        if ($this->matchesAny($lower, ['available', 'availability', 'in stock', 'stock', 'price', 'pricing', 'how much']) &&
+            $this->matchesAny($lower, ['lettuce', 'romaine', 'batavia', 'bianca', 'dabi', 'estrosa', 'olmetie', 'red', 'mixed', 'bundle', 'product'])) {
+            $products = \App\Models\Product::query()
+                ->where('is_active', true)
+                ->where('plants_available', '>', 0)
+                ->where(function ($query) use ($lower) {
+                    foreach (['romaine', 'batavia', 'bianca', 'dabi', 'estrosa', 'olmetie', 'red', 'mixed', 'bundle'] as $term) {
+                        if (str_contains($lower, $term)) $query->orWhere('name', 'like', "%{$term}%");
+                    }
+                })->limit(5)->get();
+            if ($products->isNotEmpty()) {
+                $lines = $products->map(fn ($product) => "• {$product->name} — ₱" . number_format((float) $product->price, 2) . " ({$product->plants_available} available)")->implode("\n");
+                return ['replies' => ["Here is the current availability from our shop:\n{$lines}\n\nYou can view the full product list and add items to your cart from the Shop page."], 'escalate' => false, 'context' => null];
+            }
+        }
+
         if ($this->isVagueHelpRequest($lower)) {
             return [
                 'replies' => ["Of course — happy to help. Could you tell me a little more about what's going on? For example: is this about an order you placed, a product that arrived with a problem, your account, or something else?"],

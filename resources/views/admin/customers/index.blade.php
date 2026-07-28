@@ -52,8 +52,30 @@
       </form>
     </div>
 
-    <!-- Stats Lists -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+    <!-- Customer statistics -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+      @foreach([['Total Orders',$stats['total_orders'] ?? 0,'text-[#17611f]'],['Completed',$stats['completed_orders'] ?? 0,'text-green-600'],['Pending',$stats['pending_orders'] ?? 0,'text-amber-600'],['Cancelled',$stats['cancelled_orders'] ?? 0,'text-red-600'],['Total Spent','₱'.number_format($stats['total_spent'] ?? 0,2),'text-[#17611f]']] as $stat)
+        <div class="bg-white rounded-xl border p-4 shadow-sm"><p class="text-xl font-black {{ $stat[2] }}">{{ $stat[1] }}</p><p class="text-[11px] text-[#5a7a5c] font-bold mt-1">{{ $stat[0] }}</p></div>
+      @endforeach
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-4" id="customerTabs">
+      @foreach(['profile'=>'Profile','orders'=>'Orders','tickets'=>'Support Tickets','returns'=>'Returns & Refunds','activity'=>'Activity'] as $tab=>$label)
+        <button type="button" data-tab="{{ $tab }}" class="customer-tab px-4 py-2 rounded-full text-xs font-bold {{ $tab==='profile' ? 'bg-[#17611f] text-white' : 'bg-white border text-[#5a7a5c]' }}">{{ $label }}</button>
+      @endforeach
+    </div>
+
+    <section data-panel="profile" class="customer-panel bg-white rounded-xl border p-6 mb-6 shadow-sm">
+      <h2 class="font-black mb-4">Complete Profile</h2><div class="grid sm:grid-cols-2 gap-4 text-sm"><p><b>Email:</b> {{ $customer->email }}</p><p><b>Phone:</b> {{ $customer->phone ?: 'Not provided' }}</p><p class="sm:col-span-2"><b>Shipping Address:</b> {{ $customer->address ?: 'Not provided' }}</p><p><b>Account Status:</b> <span class="text-green-700 font-bold">Active</span></p><p><b>Date Registered:</b> {{ $customer->created_at->format('M j, Y g:i A') }}</p><p><b>Last Account Update:</b> {{ optional($customer->updated_at)->format('M j, Y g:i A') ?: 'Not available' }}</p></div>
+    </section>
+
+    <!-- History panels -->
+    <div data-panel="orders" class="customer-panel hidden bg-white rounded-xl border p-5 mb-6 shadow-sm"><h2 class="font-black mb-4">Complete Order History</h2>@forelse($orders as $o)<div class="border rounded-xl p-4 mb-3"><div class="flex justify-between gap-3"><b>#{{ $o->order_number }}</b><span class="text-xs font-bold">{{ ucwords(str_replace('_',' ',$o->status)) }}</span></div><p class="text-xs text-[#5a7a5c]">{{ $o->created_at->format('M j, Y g:i A') }} · {{ strtoupper($o->payment_method) }} · ₱{{ number_format($o->total,2) }}</p><div class="mt-2 text-xs">@foreach($o->items as $item)<p>{{ $item->product_name }} × {{ $item->quantity }}</p>@endforeach</div></div>@empty <p class="text-sm text-[#9e9e9e] py-6 text-center">This customer has no orders yet.</p>@endforelse</div>
+    <div data-panel="tickets" class="customer-panel hidden bg-white rounded-xl border p-5 mb-6 shadow-sm"><h2 class="font-black mb-4">Support Tickets & Feedback</h2>@forelse($tickets as $t)<a href="{{ route('admin.tickets.show',$t->id) }}" class="block border rounded-xl p-4 mb-3 hover:bg-[#f4faf5]"><b>{{ $t->subject }}</b><p class="text-xs text-[#5a7a5c]">{{ ucfirst($t->status) }} · {{ $t->created_at->format('M j, Y g:i A') }}</p></a>@empty <p class="text-sm text-[#9e9e9e]">No support tickets submitted.</p>@endforelse @forelse($feedbacks as $f)<div class="border rounded-xl p-4 mb-3 text-sm"><b>Feedback · {{ $f->rating }}★</b><p>{{ $f->comments ?: $f->subject }}</p></div>@empty <p class="text-sm text-[#9e9e9e] mt-4">No feedback submitted.</p>@endforelse</div>
+    <div data-panel="returns" class="customer-panel hidden bg-white rounded-xl border p-5 mb-6 shadow-sm"><h2 class="font-black mb-4">Returns & Refunds</h2>@forelse($returns as $r)<div class="border rounded-xl p-4 mb-3"><b>Order #{{ $r->order_number }}</b><p class="text-xs text-[#5a7a5c]">{{ $r->product_name }} · {{ ucwords(str_replace('_',' ',$r->status)) }} · {{ $r->created_at->format('M j, Y g:i A') }}</p></div>@empty <p class="text-sm text-[#9e9e9e] py-6 text-center">No return or refund requests.</p>@endforelse</div>
+    <div data-panel="activity" class="customer-panel hidden bg-white rounded-xl border p-5 mb-6 shadow-sm"><h2 class="font-black mb-4">Notification Activity</h2>@forelse($activity as $a)<div class="border-b py-3"><b class="text-sm">{{ $a->title }}</b><p class="text-xs text-[#5a7a5c]">{{ $a->message }}</p><p class="text-[11px] text-[#9e9e9e]">{{ $a->created_at->format('M j, Y g:i A') }} · {{ $a->is_read ? 'Read' : 'Unread' }}</p></div>@empty <p class="text-sm text-[#9e9e9e] py-6 text-center">No customer activity recorded yet.</p>@endforelse</div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 hidden">
       <div class="bg-white rounded-xl border p-5 shadow-sm">
         <h3 class="font-black text-sm mb-3 text-[#1a2e1c]">Orders ({{ count($orders) }})</h3>
         @if ($orders->isEmpty())
@@ -150,4 +172,5 @@
     </div>
   @endif
 
+@push('scripts')<script>document.querySelectorAll('.customer-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.customer-tab').forEach(x=>x.className='customer-tab px-4 py-2 rounded-full text-xs font-bold bg-white border text-[#5a7a5c]');b.className='customer-tab px-4 py-2 rounded-full text-xs font-bold bg-[#17611f] text-white';document.querySelectorAll('.customer-panel').forEach(p=>p.classList.toggle('hidden',p.dataset.panel!==b.dataset.tab));}));</script>@endpush
 @endsection

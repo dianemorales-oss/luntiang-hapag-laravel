@@ -162,8 +162,8 @@ Route::middleware(['customer.auth'])->group(function(){
     Route::get('/ticket-view/{id}', [TicketController::class, 'show'])->name('tickets.show');
     Route::get('/ticket-view.php', [TicketController::class, 'show']);
     Route::post('/ticket-view/{id}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
-    Route::get('/tickets/{id}/close', [TicketController::class, 'close'])->name('tickets.close');
-    Route::get('/tickets/{id}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
+    Route::post('/tickets/{id}/close', [TicketController::class, 'close'])->name('tickets.close');
+    Route::post('/tickets/{id}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
 
     Route::get('/returns-refund', [ReturnController::class, 'index'])->name('returns.index');
     Route::get('/returns-refund.php', [ReturnController::class, 'index']);
@@ -254,7 +254,7 @@ Route::middleware(['admin.auth'])->prefix('admin')->name('admin.')->group(functi
     Route::get('/live-chat/{chatKey}', [App\Http\Controllers\Admin\LiveChatController::class, 'show'])->name('live-chat.show');
     Route::post('/live-chat/{chatKey}/send', [App\Http\Controllers\Admin\LiveChatController::class, 'send'])->name('live-chat.send');
     Route::get('/live-chat/{chatKey}/poll', [App\Http\Controllers\Admin\LiveChatController::class, 'poll'])->name('live-chat.poll');
-    Route::match(['get', 'post'], '/live-chat/{chatKey}/delete', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation'])->name('live-chat.delete');
+    Route::delete('/live-chat/{chatKey}', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation'])->name('live-chat.delete');
     Route::match(['get', 'post'], '/chat-delete.php', [App\Http\Controllers\Admin\LiveChatController::class, 'deleteConversation']);
     Route::match(['get', 'post'], '/chat-poll.php', [App\Http\Controllers\Admin\LiveChatController::class, 'poll']);
     Route::match(['get', 'post'], '/chat-send.php', [App\Http\Controllers\Admin\LiveChatController::class, 'send']);

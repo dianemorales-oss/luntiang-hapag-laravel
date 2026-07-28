@@ -108,6 +108,7 @@ class TicketController extends Controller
         $ticket = Ticket::where('id',$id)->where('user_id',$userId)->firstOrFail();
         $message = trim($request->input('message'));
         if (empty($message)) return back()->with('error','Message required');
+        if (mb_strlen($message) > 2000) return back()->with('error','Reply must not exceed 2,000 characters.');
         if ($ticket->status === 'closed') return back()->with('error','Ticket closed');
 
         TicketReply::create([
@@ -128,6 +129,7 @@ class TicketController extends Controller
     {
         $userId = $request->session()->get('user_id');
         $ticket = Ticket::where('id',$id)->where('user_id',$userId)->firstOrFail();
+        if ($ticket->status !== 'resolved') return back()->with('error','Only resolved tickets can be closed from this confirmation.');
         $ticket->status = 'closed';
         $ticket->save();
         $user = \App\Models\User::find($userId);
@@ -139,6 +141,7 @@ class TicketController extends Controller
     {
         $userId = $request->session()->get('user_id');
         $ticket = Ticket::where('id',$id)->where('user_id',$userId)->firstOrFail();
+        if ($ticket->status !== 'resolved') return back()->with('error','This ticket can no longer be reopened from the resolution confirmation.');
         $ticket->status = 'open';
         $ticket->save();
         $user = \App\Models\User::find($userId);

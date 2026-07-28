@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ReturnRequest;
 use App\Helpers\AdminNoteHelper;
+use App\Helpers\CustomerNotificationHelper;
 use Illuminate\Http\Request;
 
 class ReturnController extends Controller
@@ -10,7 +11,7 @@ class ReturnController extends Controller
     public function index(Request $request)
     {
         $statusFilter = $request->get('status', 'all');
-        $allowedStatuses = ['pending', 'approved', 'denied', 'completed'];
+        $allowedStatuses = ['pending', 'approved', 'denied', 'refund_processing', 'refunded'];
 
         $query = ReturnRequest::with('user');
         if (in_array($statusFilter, $allowedStatuses, true)) {
@@ -32,10 +33,14 @@ class ReturnController extends Controller
     {
         $rr = ReturnRequest::findOrFail($id);
         $status = $request->input('new_status') ?: $request->input('status');
+        $allowed = ['pending', 'approved', 'denied', 'refund_processing', 'refunded'];
+        if (!in_array($status, $allowed, true)) return back()->with('error', 'Invalid return status.');
+        if ($rr->status === $status) return back()->with('success', 'Return request status is already up to date.');
         $note = $request->input('admin_note') ?: AdminNoteHelper::defaultAdminNote('return', $status);
         $rr->status = $status;
         $rr->admin_note = $note;
         $rr->save();
+        CustomerNotificationHelper::returnStatusChanged($rr->user_id, $rr->id, $rr->order_number, $status);
         return back()->with('success', 'Return request #' . $id . ' updated to "' . ucfirst($status) . '".');
     }
 }

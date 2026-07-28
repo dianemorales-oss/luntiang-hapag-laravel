@@ -56,6 +56,7 @@ class ReturnController extends Controller
 
             $user = \App\Models\User::find($request->session()->get('user_id'));
             NotificationHelper::create('return_new', $rr->id, 'New Return & Refund Request', "Reason: " . $rr->reason_category, $user->first_name.' '.$user->last_name);
+            \App\Helpers\CustomerNotificationHelper::returnStatusChanged($rr->user_id, $rr->id, $rr->order_number, 'pending');
 
             $request->session()->forget('pending_return');
             return redirect()->route('profile.index')->with('success','Return request submitted');

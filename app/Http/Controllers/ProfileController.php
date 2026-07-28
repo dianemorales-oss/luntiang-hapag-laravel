@@ -108,23 +108,36 @@ class ProfileController extends Controller
         // Saved Addresses
         $addresses = CustomerAddress::where('user_id', $userId)->orderByDesc('is_default')->get();
 
-        // Claimed Coupons - exclude expired and used
-        $couponsQuery = Promotion::join('claimed_coupons', 'promotions.id', '=', 'claimed_coupons.promotion_id')
-            ->where('claimed_coupons.user_id', $userId)
-            ->where('promotions.is_active', 1)
-            ->whereNull('claimed_coupons.used_at');
+        // Coupons are only needed for the Coupons tab. Loading them on every
+        // profile page made unrelated pages (such as Support / Track Request)
+        // depend on the optional coupon-expiry database migration.
+        $coupons = collect();
+        if ($section === 'coupons') {
+            $couponsQuery = Promotion::join('claimed_coupons', 'promotions.id', '=', 'claimed_coupons.promotion_id')
+                ->where('claimed_coupons.user_id', $userId)
+                ->where('promotions.is_active', 1)
+                ->whereNull('claimed_coupons.used_at');
 
-        // Auto-expire: exclude expired claimed coupons
-        if (\Illuminate\Support\Facades\Schema::hasColumn('claimed_coupons', 'expires_at')) {
-            $couponsQuery->where(function($q){
-                $q->whereNull('claimed_coupons.expires_at')->orWhere('claimed_coupons.expires_at','>', now());
-            });
+            // Older installations may not have the optional claimed-coupon
+            // expiry migration yet. Work safely with either schema version.
+            $hasClaimExpiry = \Illuminate\Support\Facades\Schema::hasColumn('claimed_coupons', 'expires_at');
+            if ($hasClaimExpiry) {
+                $couponsQuery->where(function ($q) {
+                    $q->whereNull('claimed_coupons.expires_at')
+                        ->orWhere('claimed_coupons.expires_at', '>', now());
+                });
+            }
+
+            $couponColumns = ['promotions.*', 'claimed_coupons.claimed_at'];
+            if ($hasClaimExpiry) {
+                $couponColumns[] = 'claimed_coupons.expires_at as claimed_expires_at';
+            }
+
+            $coupons = $couponsQuery
+                ->select($couponColumns)
+                ->orderByDesc('claimed_coupons.claimed_at')
+                ->get();
         }
-
-        $coupons = $couponsQuery
-            ->select('promotions.*', 'claimed_coupons.claimed_at', 'claimed_coupons.expires_at as claimed_expires_at')
-            ->orderByDesc('claimed_coupons.claimed_at')
-            ->get();
 
         $tickets = Ticket::where('user_id', $userId)->orderByDesc('created_at')->get();
         $warranty = WarrantyRequest::where('user_id', $userId)->orderByDesc('created_at')->get();

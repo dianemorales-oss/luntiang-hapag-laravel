@@ -89,7 +89,10 @@ class ChatController extends Controller
         if ($request->session()->has('user_id')) {
             $chatKey = 'user-' . $request->session()->get('user_id');
         }
-        $mode = $request->input('mode','assistant'); // assistant or agent
+        $mode = strtolower((string) $request->input('mode', 'assistant'));
+        if (!in_array($mode, ['assistant', 'agent'], true)) {
+            return response()->json(['ok' => false, 'error' => 'Invalid chat mode.'], 422);
+        }
 
         if ($mode === 'agent') {
             ChatBotState::updateOrCreate(
@@ -101,7 +104,7 @@ class ChatController extends Controller
                 'user_id' => null,
                 'customer_name' => 'System',
                 'sender' => 'admin',
-                'message' => 'You are now connected to a live agent. The AI assistant has been paused. An agent will be with you shortly. You can switch back to assistant anytime via "Talk to Assistant Again".',
+                'message' => 'You are now connected to a live agent. The AI assistant has been paused. An agent will be with you shortly. You can switch back to the assistant at any time using the mode controls.',
             ]);
         } else {
             ChatBotState::updateOrCreate(
@@ -131,6 +134,11 @@ class ChatController extends Controller
                 $chatKey = bin2hex(random_bytes(16));
             }
         }
+
+        $request->validate([
+            'message' => ['nullable', 'string', 'max:2000'],
+            'image' => ['nullable', 'image', 'max:5120'],
+        ]);
 
         $messageText = trim($request->input('message',''));
         $messageTextForDb = $this->cleanMessageForDatabase($messageText);

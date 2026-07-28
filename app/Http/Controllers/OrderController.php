@@ -39,6 +39,11 @@ class OrderController extends Controller
         if ($order->status !== 'active') {
             return back()->with('error','Cannot cancel this order – it is already being prepared or processed.');
         }
+        $request->validate([
+            'reason' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
         $order->status = 'cancelled';
         $order->cancellation_reason = $request->input('reason');
         $order->cancellation_notes = $request->input('notes');

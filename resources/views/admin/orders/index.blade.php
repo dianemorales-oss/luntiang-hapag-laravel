@@ -5,10 +5,13 @@
 
   @php
     $flowLabels = [
-        'active' => 'Active',
-        'preparing' => 'Preparing Order',
-        'ready' => 'Ready',
-        'delivered' => 'Delivered / Picked Up',
+        'active' => 'Order Confirmed',
+        'preparing' => 'Preparing for Harvest',
+        'harvesting' => 'Harvesting',
+        'packing' => 'Packing',
+        'ready' => 'Ready for Delivery',
+        'out_for_delivery' => 'Out for Delivery',
+        'delivered' => 'Delivered',
         'completed' => 'Completed',
         'cancelled' => 'Cancelled'
     ];
@@ -98,7 +101,7 @@
                     <div class="flex-1">
                       <label class="block text-[10px] font-black text-[#5a7a5c] uppercase tracking-wider mb-1.5">Order Status</label>
                       <select name="status" class="w-full rounded-lg border border-[rgba(27,94,32,0.15)] bg-white px-3 py-2.5 text-xs font-bold text-[#1a2e1c] focus:outline-none focus:ring-2 focus:ring-[#52b788]/30 focus:border-[#17611f] shadow-sm">
-                        @foreach(['active'=>'Active (cancel allowed)','preparing'=>'Preparing Order','ready'=>'Ready','delivered'=>'Delivered / Picked Up','completed'=>'Completed','cancelled'=>'Cancelled'] as $val=>$label)
+                        @foreach(['active'=>'Order Confirmed','preparing'=>'Preparing for Harvest','harvesting'=>'Harvesting','packing'=>'Packing','ready'=>'Ready for Delivery','out_for_delivery'=>'Out for Delivery','delivered'=>'Delivered','completed'=>'Completed','cancelled'=>'Cancelled'] as $val=>$label)
                           <option value="{{ $val }}" {{ $o->status===$val ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                       </select>
@@ -122,4 +125,17 @@
     </div>
   </div>
 
+
+@push('scripts')
+<script>
+// Notify another open dashboard tab as soon as an order is saved as Completed.
+document.querySelectorAll('form[action*="/status"]').forEach(form => {
+  form.addEventListener('submit', () => {
+    if (form.querySelector('select[name="status"]')?.value === 'completed') {
+      localStorage.setItem('luntiang:completed-order-updated', String(Date.now()));
+    }
+  });
+});
+</script>
+@endpush
 @endsection

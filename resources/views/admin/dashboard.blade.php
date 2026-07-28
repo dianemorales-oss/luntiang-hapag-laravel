@@ -10,11 +10,11 @@
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
     <div class="bg-white rounded-xl border border-[rgba(27,94,32,0.08)] p-4">
       <p class="text-xs text-[#5a7a5c] font-bold">Today Revenue</p>
-      <p class="text-xl font-black text-[#17611f]">₱{{ number_format($todayRevenue, 0) }}</p>
+      <p id="todayRevenueKpi" class="text-xl font-black text-[#17611f]">₱{{ number_format($todayRevenue, 0) }}</p>
     </div>
     <div class="bg-white rounded-xl border border-[rgba(27,94,32,0.08)] p-4">
       <p class="text-xs text-[#5a7a5c] font-bold">Orders Today</p>
-      <p class="text-xl font-black">{{ $todayOrders }}</p>
+      <p id="todayOrdersKpi" class="text-xl font-black">{{ $todayOrders }}</p>
     </div>
     <div class="bg-white rounded-xl border border-[rgba(27,94,32,0.08)] p-4">
       <p class="text-xs text-[#5a7a5c] font-bold">Customers</p>
@@ -28,6 +28,11 @@
       <p class="text-xs text-[#5a7a5c] font-bold">Pending Returns</p>
       <p class="text-xl font-black text-amber-600">{{ $pendingReturns }}</p>
     </div>
+  </div>
+
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-[rgba(27,94,32,0.10)] bg-white px-5 py-4 shadow-sm">
+    <div><h2 class="font-black text-base">Need detailed sales insights?</h2><p class="text-xs text-[#5a7a5c] mt-1">Charts, order breakdowns, product performance, and sales reporting are available in Reports.</p></div>
+    <a href="{{ route('admin.reports.index') }}" class="inline-flex justify-center px-4 py-2.5 rounded-xl bg-[#17611f] text-white text-sm font-bold hover:bg-[#14521a]">Open Reports →</a>
   </div>
 
   <div class="grid lg:grid-cols-3 gap-6 mb-6">
@@ -53,7 +58,7 @@
         </div>
         <div class="flex justify-between text-sm">
           <span>Completed</span>
-          <span class="font-bold text-blue-600">{{ $completedCount }}</span>
+          <span id="completedCountKpi" class="font-bold text-blue-600">{{ $completedCount }}</span>
         </div>
         <div class="flex justify-between text-sm">
           <span>Cancelled</span>
@@ -145,5 +150,6 @@
       </div>
     </div>
   </div>
+
 
 @endsection

@@ -4,6 +4,7 @@
 
 @php
   $statusLabels = [
+      'active' => 'Active',
       'preparing' => '🌱 Preparing Order',
       'ready' => 'Ready',
       'delivered' => 'Delivered/Picked Up',
@@ -42,11 +43,17 @@
       {{ session('success') }}
     </div>
   @endif
+  @if (session('error'))
+    <div class="mb-4 rounded-xl px-4 py-3 text-sm bg-red-50 text-red-700 border border-red-100 shadow-sm">
+      {{ session('error') }}
+    </div>
+  @endif
 
   @if ($section === 'overview')
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-8">
       @foreach ([
         ['Total Orders', $totalOrders, 'text-[#17611f]'],
+        ['Active', $orderStats['active'], 'text-blue-600'],
         ['Preparing', $orderStats['preparing'], 'text-amber-600'],
         ['Ready', $orderStats['ready'], 'text-[#17611f]'],
         ['Delivered', $orderStats['delivered'], 'text-green-600'],
@@ -138,14 +145,27 @@
               <span>Total: <b class="text-[#17611f]">₱{{ number_format($o->total, 2) }}</b></span>
               <span>Items: <b>{{ $o->items->count() }}</b></span>
             </div>
-            <div class="text-xs text-[#5a7a5c] mb-3">
-              @foreach($o->items->take(2) as $it)
-                <span class="inline-block mr-2">{{ $it->product_name }} × {{ $it->quantity }}</span>
+            <div class="text-xs text-[#5a7a5c] mb-3 space-y-1.5">
+              @foreach($o->items as $it)
+                <div class="flex items-center justify-between gap-3">
+                  <span>{{ $it->product_name }} × {{ $it->quantity }}</span>
+                  @if($o->status === 'completed' && $it->product_id)
+                    @php $reviewProduct = \App\Models\Product::find($it->product_id); @endphp
+                    @if($reviewProduct)
+                      <a href="{{ route('products.show', $reviewProduct->slug) }}#reviews" class="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-100">★ Review</a>
+                    @endif
+                  @endif
+                </div>
               @endforeach
-              @if($o->items->count() > 2) <span>+{{ $o->items->count()-2 }} more</span> @endif
             </div>
             <div class="flex flex-wrap gap-2">
               <button class="track-toggle-btn px-3 py-1.5 rounded-lg bg-[#e8f5e9] text-[#17611f] text-xs font-bold hover:bg-[#c8e6c9] transition-colors" data-order="{{ $o->order_number }}">📍 Track</button>
+              @if ($o->status === 'active')
+                <form method="POST" action="{{ route('orders.cancel', $o->id) }}" onsubmit="return confirm('Cancel order #{{ $o->order_number }}? This cannot be undone.');">
+                  @csrf
+                  <button type="submit" class="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors">Cancel Order</button>
+                </form>
+              @endif
               @if (in_array($o->status, ['completed', 'delivered']))
                 <a href="?section=orders&reorder={{ $o->id }}" class="px-3 py-1.5 rounded-lg border text-xs font-bold hover:bg-[#e8f5e9]">Reorder</a>
               @endif

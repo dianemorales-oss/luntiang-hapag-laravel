@@ -168,20 +168,27 @@ class LiveChatController extends Controller
         return response()->json(['success' => true, 'messages' => $messages]);
     }
 
-    public function deleteConversation($chatKey = null)
+    public function deleteConversation(Request $request, string $chatKey)
     {
-        // Support both GET and POST requests
-        $activeChatKey = $chatKey ?? request()->input('chat_key');
-        
-        if ($activeChatKey) {
-            LiveChatMessage::where('chat_key', $activeChatKey)->delete();
-            ChatBotState::where('chat_key', $activeChatKey)->delete();
+        if ($chatKey === '' || mb_strlen($chatKey) > 64) {
+            return response()->json(['success' => false, 'error' => 'Invalid conversation.'], 422);
         }
 
-        if (request()->expectsJson()) {
-            return response()->json(['success' => true]);
+        try {
+            DB::transaction(function () use ($chatKey) {
+                $deleted = LiveChatMessage::where('chat_key', $chatKey)->delete();
+                if ($deleted === 0) {
+                    throw new \RuntimeException('This conversation was already deleted or could not be found.');
+                }
+                ChatBotState::where('chat_key', $chatKey)->delete();
+            });
+            return response()->json(['success' => true, 'message' => 'Conversation deleted successfully.']);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 404);
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'error' => 'The conversation could not be deleted. Please try again.'], 500);
         }
-
-        return redirect()->route('admin.live-chat.index')->with('success', 'Conversation deleted.');
     }
+
 }

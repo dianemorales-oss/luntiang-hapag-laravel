@@ -38,15 +38,21 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id);
         $status = $request->input('status');
-        $allowed = ['active','preparing','ready','delivered','completed','cancelled'];
-        if (!in_array($status, $allowed)) return back()->with('error','Invalid status');
+        $allowed = ['active','preparing','harvesting','packing','ready','out_for_delivery','delivered','completed','cancelled'];
+        if (!in_array($status, $allowed, true)) return back()->with('error','Invalid status');
+        if ($order->status === $status) return back()->with('success', 'Order status is already up to date.');
         $order->status = $status;
+        // Analytics groups completed sales by the actual status-update time.
+        $order->updated_at = now();
         $order->save();
 
         $labels = [
             'active'=>'Active',
-            'preparing'=>'Preparing Order',
-            'ready'=>'Ready',
+            'preparing'=>'Preparing for Harvest',
+            'harvesting'=>'Harvesting',
+            'packing'=>'Packing',
+            'ready'=>'Ready for Delivery',
+            'out_for_delivery'=>'Out for Delivery',
             'delivered'=>'Delivered/Picked Up',
             'completed'=>'Completed',
             'cancelled'=>'Cancelled'

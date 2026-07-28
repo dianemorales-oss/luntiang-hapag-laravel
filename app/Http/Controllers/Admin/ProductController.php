@@ -71,8 +71,11 @@ class ProductController extends Controller
 
         // Standard Add Product
         $request->validate([
-            'name'=>'required',
-            'price'=>'required|numeric',
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'plants_available' => ['nullable', 'integer', 'min:0'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $slug = Str::slug($request->input('name')) . '-' . time();
@@ -82,7 +85,7 @@ class ProductController extends Controller
             $f = $request->file('image');
             $dest = public_path('images/lettuce');
             if (!is_dir($dest)) mkdir($dest,0755,true);
-            $name = Str::slug($request->input('name')) . '.' . $f->getClientOriginalExtension();
+            $name = Str::slug($request->input('name')) . '-' . Str::uuid() . '.' . $f->getClientOriginalExtension();
             $f->move($dest, $name);
             $imagePath = 'images/lettuce/' . $name;
         }

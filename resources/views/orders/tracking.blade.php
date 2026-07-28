@@ -17,6 +17,12 @@
   <div class="bg-white rounded-xl border p-6 mb-6 shadow-sm">
     <h2 class="font-black text-lg">{{ $single->order_number }} — {{ ucfirst($single->status) }}</h2>
     <p class="text-sm text-[#5a7a5c]">{{ $single->created_at->format('M j, Y g:i A') }} • ₱{{ number_format($single->total,2) }}</p>
+    @if($single->status === 'active')
+      <form method="POST" action="{{ route('orders.cancel', $single->id) }}" class="mt-3" onsubmit="return confirm('Cancel order #{{ $single->order_number }}? This cannot be undone.');">
+        @csrf
+        <button type="submit" class="px-4 py-2 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-bold hover:bg-red-100 transition-colors">Cancel Order</button>
+      </form>
+    @endif
     <div class="mt-4 flex gap-2 flex-wrap">
       @foreach(['preparing','ready','delivered','completed'] as $step)
         <span class="px-3 py-1 rounded-full text-xs font-bold {{ $single->status===$step ? 'bg-[#17611f] text-white' : (array_search($single->status, ['preparing','ready','delivered','completed']) >= array_search($step, ['preparing','ready','delivered','completed']) ? 'bg-[#e8f5e9] text-[#17611f]' : 'bg-gray-100 text-[#9e9e9e]') }}">{{ ucfirst($step) }}</span>
@@ -37,10 +43,18 @@
         <div class="order-track-card border rounded-xl p-4 transition-all hover:shadow-md bg-white" data-order-id="{{ $o->order_number }}" data-status="{{ $o->status }}" data-date="{{ $o->created_at->format('M j, Y') }}" data-products="{{ $o->items->pluck('product_name')->implode(' ') }}">
           <div class="flex justify-between items-center">
             <div>
-              <p class="font-bold text-sm flex items-center gap-2">{{ $o->order_number }} <span class="text-[11px] px-2 py-0.5 rounded-full {{ $o->status==='completed'?'bg-green-100 text-green-700': ($o->status==='cancelled'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700') }}">{{ ucfirst($o->status) }}</span></p>
+              <p class="font-bold text-sm flex items-center gap-2">{{ $o->order_number }} <span class="text-[11px] px-2 py-0.5 rounded-full {{ $o->status==='completed'?'bg-green-100 text-green-700': ($o->status==='cancelled'?'bg-red-100 text-red-700': ($o->status==='active'?'bg-blue-100 text-blue-700':'bg-amber-100 text-amber-700')) }}">{{ ucfirst($o->status) }}</span></p>
               <p class="text-xs text-[#5a7a5c] mt-0.5">{{ $o->created_at->format('M j, Y') }} • ₱{{ number_format($o->total,2) }} • {{ count($o->items) }} items</p>
             </div>
-            <button class="track-expand-btn text-xs font-bold text-[#17611f] border border-[#c8e6c9] bg-[#e8f5e9] px-3 py-1.5 rounded-lg hover:bg-[#c8e6c9] transition-colors" data-target="detail-{{ $o->order_number }}">📍 Track</button>
+            <div class="flex items-center gap-2">
+              <button class="track-expand-btn text-xs font-bold text-[#17611f] border border-[#c8e6c9] bg-[#e8f5e9] px-3 py-1.5 rounded-lg hover:bg-[#c8e6c9] transition-colors" data-target="detail-{{ $o->order_number }}">📍 Track</button>
+              @if($o->status === 'active')
+                <form method="POST" action="{{ route('orders.cancel', $o->id) }}" onsubmit="return confirm('Cancel order #{{ $o->order_number }}? This cannot be undone.');">
+                  @csrf
+                  <button type="submit" class="px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 text-xs font-bold hover:bg-red-100">Cancel Order</button>
+                </form>
+              @endif
+            </div>
           </div>
 
           <div id="detail-{{ $o->order_number }}" class="hidden mt-4 pt-4 border-t border-[rgba(27,94,32,0.08)]">

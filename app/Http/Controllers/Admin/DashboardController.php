@@ -11,11 +11,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $todayRevenue = Order::whereDate('created_at', now()->toDateString())
-            ->where('status', '!=', 'cancelled')
+        $todayRevenue = Order::whereDate('updated_at', now()->toDateString())
+            ->where('status', 'completed')
             ->sum('total') ?: 0;
 
-        $todayOrders = Order::whereDate('created_at', now()->toDateString())->count();
+        $todayOrders = Order::whereDate('updated_at', now()->toDateString())->where('status', 'completed')->count();
         $totalCust = User::count();
         $newCustToday = User::whereDate('created_at', now()->toDateString())->count();
         $openTickets = Ticket::where('status', 'open')->count();
@@ -29,16 +29,16 @@ class DashboardController extends Controller
         $cancelledCount = Order::where('status', 'cancelled')->count();
 
         $deliveryCount = Order::where('delivery_method', 'delivery')
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'completed')
             ->count();
 
         $pickupCount = Order::where('delivery_method', 'pickup')
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'completed')
             ->count();
 
         $freeDeliveryCount = Order::where('is_free_delivery', 1)
             ->where('delivery_method', 'delivery')
-            ->where('status', '!=', 'cancelled')
+            ->where('status', 'completed')
             ->count();
 
         // Customer Feedback Overview
@@ -65,4 +65,5 @@ class DashboardController extends Controller
             'avgRating','totalFeedback','ratingDistribution','latestFeedback'
         ));
     }
+
 }

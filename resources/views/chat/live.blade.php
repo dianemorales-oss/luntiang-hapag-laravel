@@ -16,8 +16,8 @@
       <div class="flex items-center gap-2">
         <span class="text-[11px] font-black tracking-widest text-[#5a7a5c] uppercase">Mode:</span>
         <div class="flex items-center bg-[#f4faf5] rounded-full p-1 border">
-          <button id="modeAssistantBtn" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-white border text-[#5a7a5c]' : 'bg-[#17611f] text-white shadow-sm' }}">🤖 Talk to Assistant</button>
-          <button id="modeAgentBtn" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-[#17611f] text-white shadow-sm' : 'bg-white border text-[#5a7a5c]' }}">👤 Talk to Agent</button>
+          <button type="button" id="modeAssistantBtn" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-white border text-[#5a7a5c]' : 'bg-[#17611f] text-white shadow-sm' }}">🤖 Talk to Assistant</button>
+          <button type="button" id="modeAgentBtn" class="mode-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all {{ ($isAgentMode ?? false) ? 'bg-[#17611f] text-white shadow-sm' : 'bg-white border text-[#5a7a5c]' }}">👤 Talk to Agent</button>
         </div>
       </div>
       <span class="text-[10px] text-[#9e9e9e] hidden sm:inline">Chatbot maintains context • Agent takes over when selected</span>
@@ -54,8 +54,7 @@
         @foreach(($suggestedQuestions ?? []) as $q)
           <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border border-[rgba(27,94,32,0.12)] text-xs font-semibold text-[#1a2e1c] hover:bg-[#e8f5e9] hover:border-[#17611f]/30 hover:text-[#17611f] transition-all" data-message="{{ $q['message'] }}">{{ $q['label'] }}</button>
         @endforeach
-        <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border border-[rgba(27,94,32,0.12)] text-xs font-semibold text-[#17611f] hover:bg-[#e8f5e9]" data-message="What is a support ticket?">What is a support ticket?</button>
-        <button type="button" class="suggested-q px-3 py-1.5 rounded-full bg-white border text-xs font-semibold text-[#5a7a5c] hover:bg-[#e8f5e9]" data-message="How do I track my order?">How do I track my order?</button>
+        {{-- Primary suggestions are supplied by the knowledge base; no duplicate hard-coded prompts. --}}
       </div>
       @if(!empty($moreQuestions))
         <details class="mt-2">
@@ -303,7 +302,7 @@
         updateModeUI(mode==='agent');
         setTimeout(poll, 500);
       }
-    }catch(e){ console.error(e); }
+    }catch(e){ console.error(e); alert('Unable to change chat mode. Please try again.'); }
   }
 
   if(modeAssistantBtn) modeAssistantBtn.addEventListener('click', ()=> switchMode('assistant'));

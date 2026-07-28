@@ -90,10 +90,11 @@
               <p class="text-[11px] text-[#9e9e9e]">Changing the status below fills this in automatically — feel free to edit it before saving.</p>
               <div class="flex items-center gap-2">
                 <select name="new_status" data-return-status-select class="flex-1 rounded-full border border-[rgba(27,94,32,0.12)] px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 bg-white text-[#1a2e1c] font-bold">
-                  <option value="pending" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'pending') }}" {{ $r->status === 'pending' ? 'selected' : '' }}>Pending</option>
-                  <option value="approved" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'approved') }}" {{ $r->status === 'approved' ? 'selected' : '' }}>Approve</option>
-                  <option value="denied" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'denied') }}" {{ $r->status === 'denied' ? 'selected' : '' }}>Deny</option>
-                  <option value="completed" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'completed') }}" {{ $r->status === 'completed' ? 'selected' : '' }}>Mark Completed</option>
+                  <option value="pending" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'pending') }}" {{ $r->status === 'pending' ? 'selected' : '' }}>Return Requested</option>
+                  <option value="approved" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'approved') }}" {{ $r->status === 'approved' ? 'selected' : '' }}>Return Approved</option>
+                  <option value="denied" data-note="{{ \App\Helpers\AdminNoteHelper::defaultAdminNote('return', 'denied') }}" {{ $r->status === 'denied' ? 'selected' : '' }}>Return Rejected</option>
+                  <option value="refund_processing" data-note="Your refund is being processed." {{ $r->status === 'refund_processing' ? 'selected' : '' }}>Refund Processing</option>
+                  <option value="refunded" data-note="Your refund has been completed." {{ $r->status === 'refunded' ? 'selected' : '' }}>Refunded</option>
                 </select>
                 <button type="submit" class="px-4 py-2 rounded-full bg-[#17611f] text-white text-[13px] font-bold hover:bg-[#14521a] transition-all shadow-sm">Save</button>
               </div>

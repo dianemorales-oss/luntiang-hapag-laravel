@@ -117,9 +117,7 @@
   <div id="deleteConfirmModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 px-4">
     <div class="bg-white rounded-2xl shadow-lg max-w-sm w-full p-6 border">
       <h3 class="text-base font-bold text-[#1a2e1c] mb-2">Delete Conversation?</h3>
-      <p class="text-[13px] text-[#5a7a5c] leading-relaxed mb-2 font-medium">This action will permanently delete the selected chat conversation and all of its messages.</p>
-      <p class="text-[13px] text-[#5a7a5c] leading-relaxed mb-4 font-medium">Customer account information, profile details, tickets, and other records will <span class="font-bold">NOT</span> be deleted.</p>
-      <p class="text-[12px] text-red-500 font-bold mb-6">This action cannot be undone.</p>
+      <p class="text-[13px] text-[#5a7a5c] leading-relaxed mb-6 font-medium">Are you sure you want to delete this conversation? This action cannot be undone.</p>
       <div class="flex items-center justify-end gap-3">
         <button type="button" id="deleteConfirmCancel" class="px-5 py-2.5 rounded-full border border-gray-300 text-[#1a2e1c] text-sm font-bold hover:bg-gray-100 transition-colors">Cancel</button>
         <button type="button" id="deleteConfirmSubmit" class="px-5 py-2.5 rounded-full bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors">Delete Conversation</button>
@@ -143,6 +141,7 @@
     const adminSendUrlTemplate = @json(route('admin.live-chat.send', ['chatKey' => '__CHAT_KEY__']));
     const adminPollUrlTemplate = @json(route('admin.live-chat.poll', ['chatKey' => '__CHAT_KEY__']));
     const adminConversationPollUrl = @json(route('admin.live-chat.poll', ['chatKey' => '__conversations__']));
+    const adminDeleteUrlTemplate = @json(route('admin.live-chat.delete', ['chatKey' => '__CHAT_KEY__']));
 
     function adminChatUrl(template, chatKey) {
       return template.replace('__CHAT_KEY__', encodeURIComponent(chatKey));
@@ -208,13 +207,16 @@
       if (!pendingDeleteKey) return;
       const chatKey = pendingDeleteKey;
       deleteSubmitBtn.disabled = true;
+      deleteSubmitBtn.dataset.originalText = deleteSubmitBtn.textContent;
+      deleteSubmitBtn.textContent = 'Deleting…';
       try {
-        const res = await fetch('{{ route('admin.live-chat.index') }}/' + encodeURIComponent(chatKey) + '/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        const res = await fetch(adminChatUrl(adminDeleteUrlTemplate, chatKey), {
+          method: 'DELETE',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
           body: JSON.stringify({ chat_key: chatKey })
         });
         const data = await res.json();
+        if (!res.ok || !data.success) { throw new Error(data.error || 'The conversation could not be deleted.'); }
         if (data.success) {
           closeDeleteModal();
           showToast('✅ Conversation deleted successfully.', false);
@@ -251,12 +253,13 @@
             window.history.replaceState({}, '', url);
           }
         } else {
-          showToast('Something went wrong deleting this conversation.', true);
+          showToast(data.error || 'The conversation could not be deleted.', true);
         }
       } catch (err) {
-        showToast('Network error — please try again.', true);
+        showToast(err.message || 'Unable to delete the conversation. Please try again.', true);
       } finally {
         deleteSubmitBtn.disabled = false;
+        deleteSubmitBtn.textContent = deleteSubmitBtn.dataset.originalText || 'Delete Conversation';
       }
     });
 

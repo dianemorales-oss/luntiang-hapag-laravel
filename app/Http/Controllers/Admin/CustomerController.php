@@ -5,6 +5,8 @@ use App\Models\User;
 use App\Models\Ticket;
 use App\Models\Order;
 use App\Models\ReturnRequest;
+use App\Models\Feedback;
+use App\Models\CustomerNotification;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -15,18 +17,31 @@ class CustomerController extends Controller
         $search = trim($request->get('q', ''));
         
         $customer = null;
-        $tickets = [];
-        $orders = [];
-        $returns = [];
+        $tickets = collect();
+        $orders = collect();
+        $returns = collect();
+        $feedbacks = collect();
+        $activity = collect();
+        $stats = [];
         $message = '';
+        $customers = collect();
 
         if ($emailParam !== '') {
             $customer = User::where('email', $emailParam)->first();
             if ($customer) {
                 $uid = $customer->id;
                 $tickets = Ticket::where('user_id', $uid)->orderByDesc('created_at')->get();
-                $orders = Order::where('user_id', $uid)->orderByDesc('created_at')->limit(10)->get();
+                $orders = Order::where('user_id', $uid)->with('items')->orderByDesc('created_at')->get();
                 $returns = ReturnRequest::where('user_id', $uid)->orderByDesc('created_at')->get();
+                $feedbacks = Feedback::where('user_id', $uid)->orderByDesc('created_at')->get();
+                $activity = CustomerNotification::where('user_id', $uid)->orderByDesc('created_at')->limit(50)->get();
+                $stats = [
+                    'total_orders' => $orders->count(),
+                    'completed_orders' => $orders->where('status', 'completed')->count(),
+                    'pending_orders' => $orders->whereNotIn('status', ['completed', 'cancelled'])->count(),
+                    'cancelled_orders' => $orders->where('status', 'cancelled')->count(),
+                    'total_spent' => $orders->where('status', 'completed')->sum('total'),
+                ];
             }
 
             // Handle customer edit via POST on same page
@@ -34,7 +49,7 @@ class CustomerController extends Controller
                 $request->validate([
                     'first_name' => 'required',
                     'last_name' => 'required',
-                    'email' => 'required|email'
+                    'email' => 'required|email|unique:users,email,'.$customer->id
                 ]);
 
                 if ($customer) {
@@ -66,7 +81,7 @@ class CustomerController extends Controller
         }
 
         return view('admin.customers.index', compact(
-            'customer', 'tickets', 'orders', 'returns', 'emailParam', 'search', 'customers'
+            'customer', 'tickets', 'orders', 'returns', 'feedbacks', 'activity', 'stats', 'emailParam', 'search', 'customers'
         ));
     }
 }

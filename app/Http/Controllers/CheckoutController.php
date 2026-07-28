@@ -273,6 +273,9 @@ class CheckoutController extends Controller
 
             \DB::commit();
 
+            // Persistent customer notification for the first step of the order journey.
+            \App\Helpers\CustomerNotificationHelper::orderPlaced($userId, $order->id, $orderNumber);
+
             return redirect()->route('order.confirmation', ['order'=>$orderNumber]);
 
         } catch (\Exception $e) {
