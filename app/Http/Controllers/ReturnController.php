@@ -32,6 +32,14 @@ class ReturnController extends Controller
         return view('returns.index', compact('formData','reasons','conditions','eligibleOrders'));
     }
 
+    public function show(Request $request, $id)
+    {
+        $return = ReturnRequest::where('id', $id)
+            ->where('user_id', $request->session()->get('user_id'))
+            ->firstOrFail();
+        return view('returns.show', compact('return'));
+    }
+
     public function store(Request $request)
     {
         $reasons = ['Wrong Item','Damaged Item','Wilted Lettuce','Missing Item','Quality Issue','Other'];

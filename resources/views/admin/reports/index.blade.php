@@ -458,9 +458,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     setTimeout(drawSalesFallback, 300);
     document.getElementById('reportTypeDropdown')?.addEventListener('change', event => {
       const all = event.target.value === 'all';
-      document.getElementById('focusCard')?.classList.toggle('hidden', all);
-      document.getElementById('allReportsGrid')?.classList.toggle('hidden', !all);
-      if (!all) setTimeout(drawSalesFallback, 20);
+      // The reliable renderer uses the focused canvas.  Keep it visible for
+      // All Trends as an overview chart instead of showing an empty grid.
+      document.getElementById('focusCard')?.classList.remove('hidden');
+      document.getElementById('allReportsGrid')?.classList.add('hidden');
+      if (all) {
+        document.getElementById('focusTitle').textContent = 'All Trends – Overview';
+        document.getElementById('focusSubtitle').textContent = 'Completed revenue and order trends for the selected period.';
+      }
+      setTimeout(drawSalesFallback, 20);
     });
     document.querySelectorAll('.range-btn').forEach(btn => btn.addEventListener('click', () => {
       fallbackRange = btn.dataset.range || '7';

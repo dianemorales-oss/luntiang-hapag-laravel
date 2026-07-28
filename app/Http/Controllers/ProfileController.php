@@ -173,7 +173,7 @@ class ProfileController extends Controller
                 'date_submitted' => $ret->created_at,
                 'status' => $ret->status,
                 'last_updated' => $ret->updated_at,
-                'link' => route('returns.index'),
+                'link' => route('returns.show', ['id'=>$ret->id]),
                 'link_text' => 'View Details',
             ]);
         }

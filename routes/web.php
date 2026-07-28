@@ -166,6 +166,7 @@ Route::middleware(['customer.auth'])->group(function(){
     Route::post('/tickets/{id}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
 
     Route::get('/returns-refund', [ReturnController::class, 'index'])->name('returns.index');
+    Route::get('/returns-refund/{id}', [ReturnController::class, 'show'])->name('returns.show');
     Route::get('/returns-refund.php', [ReturnController::class, 'index']);
     Route::post('/returns-refund', [ReturnController::class, 'store'])->name('returns.store');
     Route::post('/returns-refund.php', [ReturnController::class, 'store']);

@@ -9,6 +9,7 @@ class AuthController extends Controller
 {
     public function showLogin(Request $request)
     {
+        if ($request->get('redirect') === 'cart') { $request->session()->put('customer_login_redirect', route('cart.index')); }
         return view('auth.login');
     }
 
@@ -35,7 +36,8 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->route('products.index');
+            $redirect = $request->session()->pull('customer_login_redirect', route('products.index'));
+            return redirect()->to($redirect);
         }
 
         return back()->with('error', 'Invalid email/mobile number or password.')->withInput();

@@ -12,6 +12,7 @@ class CustomerAuth
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated'], 401);
             }
+            session(['customer_login_redirect' => $request->fullUrl()]);
             return redirect()->route('login')->with('error', 'Please log in first.');
         }
         return $next($request);

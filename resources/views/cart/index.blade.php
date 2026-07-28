@@ -71,7 +71,7 @@
       @if(session()->has('user_id'))
         <button type="submit" class="w-full py-3 rounded-xl bg-[#17611f] text-white font-bold hover:bg-[#14521a]">Proceed to Checkout</button>
       @else
-        <a href="{{ route('login') }}" class="block text-center w-full py-3 rounded-xl bg-[#17611f] text-white font-bold">Login to Checkout</a>
+        <a href="{{ route('login', ['redirect' => 'cart']) }}" class="block text-center w-full py-3 rounded-xl bg-[#17611f] text-white font-bold">Login to Checkout</a>
       @endif
       <a href="{{ route('products.index') }}" class="block text-center w-full py-2.5 mt-2 rounded-xl border text-sm font-bold hover:bg-[#e8f5e9]">Continue Shopping</a>
     </div>
