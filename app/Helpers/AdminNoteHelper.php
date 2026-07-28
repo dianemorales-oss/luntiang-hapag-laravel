@@ -13,7 +13,7 @@ class AdminNoteHelper
             ],
             'return' => [
                 'pending'   => "Your return & refund request is currently under review. We'll update you as soon as a decision has been made.",
-                'approved'  => "Your refund has been approved. Please return the product within seven (7) business days using the provided return instructions.",
+                'approved'  => "Your refund has been approved. Please return the product within the same day or as soon as possible.",
                 'denied'    => "After review, we're unable to approve this return request. Please contact our support team if you have questions or additional information to share.",
                 'completed' => "Your return has been received and your refund has been processed. Please allow a few business days for it to reflect on your original payment method.",
             ],

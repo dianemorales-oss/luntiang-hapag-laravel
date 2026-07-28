@@ -22,6 +22,10 @@ class AuthController extends Controller
             return back()->with('error', 'Please enter your admin email and password.')->withInput();
         }
 
+        if (\App\Models\User::whereRaw('LOWER(email) = ?', [$email])->exists()) {
+            return back()->with('error', 'Customer accounts cannot sign in to the Admin Portal.')->withInput();
+        }
+
         $admin = Admin::whereRaw('LOWER(email) = ?', [$email])->first();
 
         // Development fallback: ensure the documented default admin can log in.

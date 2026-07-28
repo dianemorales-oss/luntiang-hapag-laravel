@@ -33,7 +33,11 @@
         </div>
         <div>
           <label class="text-xs font-bold text-[#5a7a5c]">Unit</label>
-          <input name="unit" value="{{ $editProduct->unit }}" class="w-full border border-[rgba(27,94,32,0.12)] rounded-xl px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#52b788]/40">
+          <select name="unit" class="w-full border border-[rgba(27,94,32,0.12)] rounded-xl px-3 py-2 text-sm mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#52b788]/40">
+            <option value="per cup" {{ ($editProduct->unit ?? '') === 'per cup' ? 'selected' : '' }}>per cup</option>
+            <option value="per bundle" {{ ($editProduct->unit ?? '') === 'per bundle' ? 'selected' : '' }}>per bundle</option>
+            <option value="per sacks" {{ ($editProduct->unit ?? '') === 'per sacks' ? 'selected' : '' }}>per sacks</option>
+          </select>
         </div>
         <div>
           <label class="text-xs font-bold text-[#5a7a5c]">Plants Available</label>
@@ -95,7 +99,11 @@
         </div>
         <div>
           <label class="text-xs font-bold text-[#5a7a5c]">Unit</label>
-          <input name="unit" placeholder="per cup" class="w-full border border-[rgba(27,94,32,0.12)] rounded-xl px-3 py-2.5 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[#52b788]/40">
+          <select name="unit" class="w-full border border-[rgba(27,94,32,0.12)] rounded-xl px-3 py-2.5 text-sm mt-1 bg-white focus:outline-none focus:ring-2 focus:ring-[#52b788]/40">
+            <option value="per cup">per cup</option>
+            <option value="per bundle">per bundle</option>
+            <option value="per sacks">per sacks</option>
+          </select>
         </div>
         <div>
           <label class="text-xs font-bold text-[#5a7a5c]">Plants Available (Stock)</label>

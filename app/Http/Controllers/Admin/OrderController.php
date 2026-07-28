@@ -10,13 +10,23 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $filter = $request->get('filter', 'all');
+        $search = trim($request->get('q', ''));
 
         $query = Order::query();
         if ($filter !== 'all') {
             $query->where('status', $filter);
         }
 
-        $allOrders = $query->orderByDesc('created_at')->with('items')->limit(50)->get();
+        if ($search !== '') {
+            $query->where(function($q) use ($search) {
+                $q->where('order_number', 'like', "%$search%")
+                  ->orWhere('customer_name', 'like', "%$search%")
+                  ->orWhere('customer_email', 'like', "%$search%")
+                  ->orWhere('customer_phone', 'like', "%$search%");
+            });
+        }
+
+        $allOrders = $query->orderByDesc('created_at')->with('items')->limit(100)->get();
 
         // Admin KPI counts
         $todayOrders = Order::whereDate('created_at', now()->toDateString())->count();
@@ -30,7 +40,7 @@ class OrderController extends Controller
         $readyCount = Order::where('status', 'ready')->count();
 
         return view('admin.orders.index', compact(
-            'allOrders', 'filter', 'todayOrders', 'todayRevenue', 'activeCount', 'preparingCount', 'readyCount'
+            'allOrders', 'filter', 'search', 'todayOrders', 'todayRevenue', 'activeCount', 'preparingCount', 'readyCount'
         ));
     }
 

@@ -5,11 +5,11 @@
 
   @php
     $flowLabels = [
-        'active' => 'Order Confirmed',
-        'preparing' => 'Preparing for Harvest',
+        'active' => 'Active',
+        'preparing' => 'Preparing',
         'harvesting' => 'Harvesting',
         'packing' => 'Packing',
-        'ready' => 'Ready for Delivery',
+        'ready' => 'Ready',
         'out_for_delivery' => 'Out for Delivery',
         'delivered' => 'Delivered',
         'completed' => 'Completed',
@@ -17,8 +17,20 @@
     ];
   @endphp
 
-  <h1 class="text-2xl font-black mb-1">Order Management</h1>
-  <p class="text-sm text-[#5a7a5c] mb-6">5-Step Flow: Active (cancel allowed) → Preparing → Ready → Delivered → Completed</p>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-black mb-1">Order Management</h1>
+      <p class="text-sm text-[#5a7a5c]">Manage order statuses and fulfill customer requests</p>
+    </div>
+    <!-- Search Bar -->
+    <form method="GET" action="{{ route('admin.orders.index') }}" class="w-full sm:w-80">
+      <input type="hidden" name="filter" value="{{ $filter }}">
+      <div class="relative">
+        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9e9e9e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input type="text" name="q" value="{{ $search ?? '' }}" placeholder="Search order number or customer..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-[rgba(27,94,32,0.12)] bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[#52b788]/40 shadow-sm" />
+      </div>
+    </form>
+  </div>
 
   <!-- KPI Cards -->
   <div class="grid grid-cols-5 gap-4 mb-6">
@@ -44,14 +56,14 @@
     </div>
   </div>
 
-  <!-- Filter Pills -->
+  <!-- Filter Pills matching the requested order filter tabs -->
   <div class="flex flex-wrap gap-1.5 mb-5">
     @foreach (['all'=>'All','active'=>'Active','preparing'=>'Preparing','ready'=>'Ready','delivered'=>'Delivered','completed'=>'Completed','cancelled'=>'Cancelled'] as $k=>$l)
-      <a href="?filter={{ $k }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold {{ $filter === $k ? 'bg-[#17611f] text-white shadow-sm' : 'bg-white border text-[#5a7a5c] hover:bg-[#e8f5e9]' }} transition-colors">{{ $l }}</a>
+      <a href="?filter={{ $k }}{{ $search ? '&q='.urlencode($search) : '' }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold {{ $filter === $k ? 'bg-[#17611f] text-white shadow-sm' : 'bg-white border text-[#5a7a5c] hover:bg-[#e8f5e9]' }} transition-colors">{{ $l }}</a>
     @endforeach
   </div>
 
-  <!-- Orders Table with improved spacing and dropdown + Save -->
+  <!-- Orders Table with status dropdown matching the filter list exactly -->
   <div class="bg-white rounded-2xl border border-[rgba(27,94,32,0.08)] overflow-hidden shadow-sm">
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -67,7 +79,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-[rgba(27,94,32,0.05)]">
-          @foreach ($allOrders as $o)
+          @forelse ($allOrders as $o)
             @php $isEnd = in_array($o->status, ['completed', 'cancelled']); @endphp
             <tr class="hover:bg-[#f8fcf9]/80 transition-colors">
               <td class="p-4">
@@ -91,7 +103,7 @@
               </td>
               <td class="p-4">
                 <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold {{ $o->status==='active' ? 'bg-blue-100 text-blue-700 border border-blue-200' : (in_array($o->status, ['completed', 'delivered']) ? 'bg-green-100 text-green-700 border border-green-200' : ($o->status === 'cancelled' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-amber-100 text-amber-700 border border-amber-200')) }}">
-                  {{ $flowLabels[$o->status] ?? $o->status }}
+                  {{ $flowLabels[$o->status] ?? ucfirst($o->status) }}
                 </span>
               </td>
               <td class="p-4">
@@ -101,7 +113,7 @@
                     <div class="flex-1">
                       <label class="block text-[10px] font-black text-[#5a7a5c] uppercase tracking-wider mb-1.5">Order Status</label>
                       <select name="status" class="w-full rounded-lg border border-[rgba(27,94,32,0.15)] bg-white px-3 py-2.5 text-xs font-bold text-[#1a2e1c] focus:outline-none focus:ring-2 focus:ring-[#52b788]/30 focus:border-[#17611f] shadow-sm">
-                        @foreach(['active'=>'Order Confirmed','preparing'=>'Preparing for Harvest','harvesting'=>'Harvesting','packing'=>'Packing','ready'=>'Ready for Delivery','out_for_delivery'=>'Out for Delivery','delivered'=>'Delivered','completed'=>'Completed','cancelled'=>'Cancelled'] as $val=>$label)
+                        @foreach(['active'=>'Active','preparing'=>'Preparing','ready'=>'Ready','delivered'=>'Delivered','completed'=>'Completed','cancelled'=>'Cancelled'] as $val=>$label)
                           <option value="{{ $val }}" {{ $o->status===$val ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                       </select>
@@ -113,22 +125,24 @@
                   </form>
                 @else
                   <div class="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold {{ $o->status==='completed' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200' }}">{{ $flowLabels[$o->status] ?? $o->status }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-bold {{ $o->status==='completed' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200' }}">{{ $flowLabels[$o->status] ?? ucfirst($o->status) }}</span>
                     <p class="text-[10px] text-[#9e9e9e] mt-1.5 font-medium">Final status – no further changes</p>
                   </div>
                 @endif
               </td>
             </tr>
-          @endforeach
+          @empty
+            <tr>
+              <td colspan="7" class="p-8 text-center text-sm text-[#5a7a5c]">No orders found matching your search or filter.</td>
+            </tr>
+          @endforelse
         </tbody>
       </table>
     </div>
   </div>
 
-
 @push('scripts')
 <script>
-// Notify another open dashboard tab as soon as an order is saved as Completed.
 document.querySelectorAll('form[action*="/status"]').forEach(form => {
   form.addEventListener('submit', () => {
     if (form.querySelector('select[name="status"]')?.value === 'completed') {

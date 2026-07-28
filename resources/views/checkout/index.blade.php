@@ -19,20 +19,37 @@
       </div>
 
       <div class="bg-white rounded-xl border p-5" id="addressSection">
-        <h2 class="font-black text-lg mb-3">Delivery Address</h2>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-black text-lg">Delivery Address</h2>
+          @if($defaultAddr)
+            <button type="button" onclick="toggleEditAddress()" id="editAddressBtn" class="text-xs font-bold text-[#17611f] border border-[#c8e6c9] bg-[#e8f5e9] px-3 py-1.5 rounded-lg hover:bg-[#c8e6c9] transition-colors">✏️ Edit Address</button>
+          @endif
+        </div>
+
         @if($savedAddresses->isNotEmpty())
-        <div class="mb-3 space-y-2">
+        <div class="mb-4 space-y-2">
           @foreach($savedAddresses as $sa)
-          <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-[#e8f5e9] text-sm">
-            <input type="radio" name="saved_address_id" value="{{ $sa->id }}" class="accent-[#17611f]" onchange="fillAddr(this)" data-address="{{ $sa->address }}" data-city="{{ $sa->city }}" data-province="{{ $sa->province }}" data-zip="{{ $sa->zip }}">
-            <div><span class="font-bold">{{ $sa->label }}:</span> {{ $sa->address }}, {{ $sa->city }}</div>
+          <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-[#e8f5e9] text-sm {{ ($sa->is_default || $loop->first) ? 'border-[#17611f] bg-[#e8f5e9]/40' : '' }}">
+            <input type="radio" name="saved_address_id" value="{{ $sa->id }}" class="accent-[#17611f]" {{ ($sa->is_default || $loop->first) ? 'checked' : '' }} onchange="fillAddr(this)" data-address="{{ $sa->address }}" data-city="{{ $sa->city }}" data-province="{{ $sa->province }}" data-zip="{{ $sa->zip }}">
+            <div><span class="font-bold">{{ $sa->label }}:</span> {{ $sa->address }}, {{ $sa->city }}, {{ $sa->province }} {{ $sa->zip }}</div>
           </label>
           @endforeach
         </div>
         @endif
-        <div class="space-y-3">
+
+        <!-- Default Address Display Card (shown initially if default exists) -->
+        <div id="displayAddressCard" class="bg-[#f4faf5] border border-[#c8e6c9] rounded-xl p-4 text-sm {{ $defaultAddr ? '' : 'hidden' }}">
+          <p class="font-bold text-[#1a2e1c]" id="dispAddrText">{{ $defaultAddress }}, {{ $defaultCity }}, {{ $defaultProvince }} {{ $defaultZip }}</p>
+          <p class="text-xs text-[#5a7a5c] mt-1">✓ Set as default delivery address</p>
+        </div>
+
+        <!-- Editable Address Form (hidden by default unless edit is clicked) -->
+        <div id="editableAddressForm" class="space-y-3 {{ $defaultAddr ? 'hidden mt-3' : '' }}">
           <textarea name="address" rows="2" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="Street address" required>{{ old('address', $defaultAddress) }}</textarea>
-          <div class="grid grid-cols-2 gap-3"><input name="city" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="City" required value="{{ old('city', $defaultCity) }}"><input name="province" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="Province" required value="{{ old('province', $defaultProvince) }}"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <input name="city" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="City" required value="{{ old('city', $defaultCity) }}">
+            <input name="province" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="Province" required value="{{ old('province', $defaultProvince) }}">
+          </div>
           <input name="zip" class="w-full border rounded-xl px-3 py-2 text-sm" placeholder="ZIP Code" value="{{ old('zip', $defaultZip) }}">
         </div>
       </div>
@@ -56,8 +73,8 @@
         </div>
         <div id="paymentReferenceWrap" class="hidden mt-4">
           <label id="paymentReferenceLabel" class="text-xs font-bold text-[#5a7a5c]">Account / Mobile Number</label>
-          <input type="text" name="payment_reference" id="paymentReference" value="{{ old('payment_reference') }}" class="w-full border rounded-xl px-3 py-2 text-sm mt-1" inputmode="numeric" placeholder="Enter account/mobile number">
-          <p class="text-[11px] text-[#9e9e9e] mt-1">Required for GCash, Maya, and Bank Transfer payments.</p>
+          <input type="text" name="payment_reference" id="paymentReference" value="{{ old('payment_reference') }}" class="w-full border rounded-xl px-3 py-2 text-sm mt-1" inputmode="numeric" placeholder="Enter account/mobile number" oninput="validatePaymentReference(this)">
+          <p id="paymentReferenceHint" class="text-[11px] text-[#9e9e9e] mt-1">Required for GCash, Maya, and Bank Transfer payments (11 digits for GCash/Maya, numbers only).</p>
         </div>
       </div>
     </div>
@@ -89,14 +106,52 @@ function togglePaymentReference(){
   const wrap=document.getElementById('paymentReferenceWrap');
   const input=document.getElementById('paymentReference');
   const label=document.getElementById('paymentReferenceLabel');
+  const hint=document.getElementById('paymentReferenceHint');
   const needs=method!=='cod';
   wrap.classList.toggle('hidden',!needs);
   input.required=needs;
-  input.placeholder=method==='bank_transfer'?'Enter bank account number':'Enter 11-digit mobile number';
-  label.textContent=method==='bank_transfer'?'Bank Account Number':'Mobile Number';
-  input.maxLength=method==='bank_transfer'?30:11;
+
+  if(method==='bank_transfer'){
+    label.textContent='Bank Account Number';
+    input.placeholder='Enter bank account number (numbers only)';
+    hint.textContent='Bank transfer requires numbers only (no character limit restriction).';
+    input.setAttribute('inputmode', 'numeric');
+  } else if(method==='gcash' || method==='maya'){
+    label.textContent= (method==='gcash'?'GCash':'Maya') + ' Mobile Number';
+    input.placeholder='Enter 11-digit mobile number';
+    hint.textContent='Must be exactly 11 digits (numbers only, e.g. 09123456789).';
+    input.setAttribute('inputmode', 'numeric');
+    input.maxLength = 11;
+  }
   setActiveOptions();
 }
+
+function validatePaymentReference(el){
+  const method=document.querySelector('input[name=payment_method]:checked').value;
+  // Numbers only check
+  el.value = el.value.replace(/\D/g, '');
+  if(method === 'gcash' || method === 'maya'){
+    if(el.value.length > 11){
+      el.value = el.value.slice(0, 11);
+    }
+  }
+}
+
+function toggleEditAddress(){
+  const card = document.getElementById('displayAddressCard');
+  const form = document.getElementById('editableAddressForm');
+  const btn = document.getElementById('editAddressBtn');
+  if(form.classList.contains('hidden')){
+    form.classList.remove('hidden');
+    if(card) card.classList.add('hidden');
+    btn.textContent = '✓ Done Editing';
+  } else {
+    form.classList.add('hidden');
+    if(card) card.classList.remove('hidden');
+    btn.textContent = '✏️ Edit Address';
+  }
+}
+
 function toggleAddr(){
   let m=document.querySelector('input[name=delivery_method]:checked').value;
   let s=document.getElementById('addressSection');
@@ -108,8 +163,43 @@ function toggleAddr(){
   document.getElementById('totalDisp').textContent='P'+Math.max(0,{{ $subtotal }}+d-{{ $discount }}).toFixed(2);
   setActiveOptions();
 }
-function fillAddr(r){document.querySelector('textarea[name=address]').value=r.dataset.address;document.querySelector('input[name=city]').value=r.dataset.city;document.querySelector('input[name=province]').value=r.dataset.province;document.querySelector('input[name=zip]').value=r.dataset.zip||'';}
-document.getElementById('checkoutForm').addEventListener('submit',function(){const b=document.getElementById('placeOrderBtn');b.disabled=true;b.textContent='Placing Order...';});
+
+function fillAddr(r){
+  const addr = r.dataset.address;
+  const city = r.dataset.city;
+  const prov = r.dataset.province;
+  const zip = r.dataset.zip || '';
+  
+  document.querySelector('textarea[name=address]').value = addr;
+  document.querySelector('input[name=city]').value = city;
+  document.querySelector('input[name=province]').value = prov;
+  document.querySelector('input[name=zip]').value = zip;
+
+  const disp = document.getElementById('dispAddrText');
+  if(disp) disp.textContent = addr + ', ' + city + ', ' + prov + ' ' + zip;
+
+  // Highlight selected address radio container
+  document.querySelectorAll('input[name=saved_address_id]').forEach(inp=>{
+    const lbl = inp.closest('label');
+    if(lbl){
+      lbl.classList.toggle('border-[#17611f]', inp.checked);
+      lbl.classList.toggle('bg-[#e8f5e9]/40', inp.checked);
+    }
+  });
+}
+
+document.getElementById('checkoutForm').addEventListener('submit',function(e){
+  const method=document.querySelector('input[name=payment_method]:checked').value;
+  const ref=document.getElementById('paymentReference').value.trim();
+  if((method==='gcash'||method==='maya') && ref.length!==11){
+    e.preventDefault();
+    alert('Please enter a valid 11-digit mobile number for ' + method.toUpperCase() + '.');
+    return false;
+  }
+  const b=document.getElementById('placeOrderBtn');
+  b.disabled=true;
+  b.textContent='Placing Order...';
+});
 toggleAddr();togglePaymentReference();
 </script>
 @endsection

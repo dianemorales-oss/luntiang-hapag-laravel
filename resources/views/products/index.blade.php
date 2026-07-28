@@ -130,7 +130,7 @@
             <div class="flex items-center justify-between mt-2 mb-1">
               <p class="font-black text-[#17611f]">₱{{ number_format((float)$p->price, 2) }}</p>
             </div>
-            <button onclick="addToCart({{ $p->id }})" class="block w-full text-center text-xs font-bold py-1.5 rounded-lg bg-[#17611f] text-white hover:bg-[#14521a] cursor-pointer">Add to Cart</button>
+            <button onclick="addToCart({{ $p->id }}, 1, this)" class="block w-full mt-2 text-center text-xs font-bold py-1.5 rounded-lg bg-[#17611f] text-white hover:bg-[#14521a] transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-sm">🛒 Add to Cart</button>
           </div>
         </article>
       @endforeach
@@ -146,7 +146,17 @@
   var key = 'lh_scroll_' + location.pathname;
   window.addEventListener('beforeunload', function(){ sessionStorage.setItem(key, window.scrollY); });
   var sy = sessionStorage.getItem(key);
-  if (sy) { window.scrollTo(0, parseInt(sy)); sessionStorage.removeItem(key); }
+  if (sy) {
+    sessionStorage.removeItem(key);
+    // If it was coming from login or top, ensure we start at the top nicely
+    if (parseInt(sy) > 300 && document.referrer.includes('/login')) {
+      window.scrollTo(0, 0);
+    } else {
+      window.scrollTo(0, parseInt(sy));
+    }
+  } else {
+    window.scrollTo(0, 0);
+  }
 })();
 
 // AJAX Add to Cart
@@ -157,7 +167,7 @@ document.body.appendChild(toast);
 
 function showToast(msg, ok) {
   toast.textContent = msg;
-  toast.className = 'fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 ' + (ok ? 'bg-[#e8f5e9] text-[#17611f] border border-[#c8e6c9]' : 'bg-red-50 text-red-700 border border-red-100');
+  toast.className = 'fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 ' + (ok ? 'bg-[#e8f5e9] text-[#17611f] border border-[#c8e6c9]':'bg-red-50 text-red-700 border border-red-100');
   toast.classList.remove('translate-x-[120%]', 'opacity-0');
   toast.classList.add('translate-x-0', 'opacity-100');
   clearTimeout(toast._t);
@@ -185,8 +195,14 @@ function updateCartCount(count) {
   }
 }
 
-async function addToCart(id, qty) {
+async function addToCart(id, qty, btn) {
   qty = qty || 1;
+  var origText = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('scale-[0.96]', 'bg-[#14521a]');
+    btn.innerHTML = '🛒 Adding...';
+  }
   try {
     var r = await fetch('{{ route('cart.ajax') }}', {
       method: 'POST',
@@ -200,9 +216,30 @@ async function addToCart(id, qty) {
     showToast(d.message, d.success);
     if (d.success) {
       updateCartCount(d.count);
+      if (btn) {
+        btn.innerHTML = '✓ Added!';
+        btn.classList.remove('bg-[#14521a]');
+        btn.classList.add('bg-green-600');
+        setTimeout(function(){
+          btn.innerHTML = origText;
+          btn.classList.remove('bg-green-600', 'scale-[0.96]');
+          btn.disabled = false;
+        }, 1200);
+      }
+    } else {
+      if (btn) {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        btn.classList.remove('scale-[0.96]');
+      }
     }
   } catch(e) {
     showToast('Network error', false);
+    if (btn) {
+      btn.innerHTML = origText;
+      btn.disabled = false;
+      btn.classList.remove('scale-[0.96]');
+    }
   }
 }
 

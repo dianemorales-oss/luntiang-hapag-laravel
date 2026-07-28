@@ -55,7 +55,10 @@
         <div class="flex justify-between"><span class="text-[#5a7a5c]">Selected Items</span><span class="font-bold" id="selCount">{{ $selectedCount }}</span></div>
         <div class="flex justify-between"><span class="text-[#5a7a5c]">Subtotal</span><span class="font-bold" id="subtotalDisplay">P{{ number_format($selectedSubtotal,2) }}</span></div>
         <div class="flex justify-between"><span class="text-[#5a7a5c]">Delivery Fee</span><span class="font-bold {{ $deliveryFee==0?'text-green-600':'' }}" id="delFeeDisplay">{{ $deliveryFee==0?'FREE':'P'.number_format($deliveryFee,2) }}</span></div>
-        <div class="flex justify-between" id="discRow" {{ $promo?'':'style=display:none' }}><span>Discount</span><span class="font-bold text-red-500" id="discDisplay">@if($promo)-P{{ number_format($discount,2) }}@endif</span></div>
+        <div class="flex justify-between" id="discRow" {{ $promo?'':'style=display:none' }}>
+          <span>Discount <span class="text-[11px] font-bold text-[#17611f] bg-[#e8f5e9] px-2 py-0.5 rounded-full ml-1" id="appliedPromoBadge">{{ $promo->code ?? '' }}</span></span>
+          <span class="font-bold text-red-500" id="discDisplay">@if($promo)-P{{ number_format($discount,2) }}@endif</span>
+        </div>
       </div>
       <div class="flex justify-between font-black text-lg border-t pt-3 mb-4"><span>Total</span><span class="text-[#17611f]" id="totalDisplay">P{{ number_format($total,2) }}</span></div>
       <details class="mb-4"><summary class="text-sm font-bold text-[#17611f] cursor-pointer">Apply Coupon</summary>
@@ -114,8 +117,14 @@ function recalc(){
   document.getElementById('subtotalDisplay').textContent='P'+st.toFixed(2);
   document.getElementById('delFeeDisplay').textContent=df===0?'FREE':'P'+df.toFixed(2);
   document.getElementById('totalDisplay').textContent='P'+Math.max(0,st+df-d).toFixed(2);
-  let dr=document.getElementById('discRow'), dd=document.getElementById('discDisplay');
-  if(currentPromo){dr.style.display='';dd.textContent='-P'+d.toFixed(2);}else{dr.style.display='none';}
+  let dr=document.getElementById('discRow'), dd=document.getElementById('discDisplay'), badge=document.getElementById('appliedPromoBadge');
+  if(currentPromo){
+    dr.style.display='';
+    dd.textContent='-P'+d.toFixed(2);
+    if(badge) badge.textContent = currentPromo.code;
+  } else {
+    dr.style.display='none';
+  }
 }
 function toggleAll(el){document.querySelectorAll('.item-cb').forEach(cb=>cb.checked=el.checked);recalc();}
 async function updateQty(id,delta){

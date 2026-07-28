@@ -13,12 +13,14 @@ class ChatController extends Controller
         if ($request->session()->has('user_id')) {
             return 'user-' . $request->session()->get('user_id');
         }
-        $gk = $request->get('gk') ?? $request->input('gk');
+        $gk = $request->get('gk') ?? $request->input('gk') ?? $request->session()->get('guest_chat_key');
         if (is_string($gk) && preg_match('/^[a-f0-9]{32}$/', $gk)) {
+            $request->session()->put('guest_chat_key', $gk);
             return $gk;
         }
-        // generate new
-        return bin2hex(random_bytes(16));
+        $newGk = bin2hex(random_bytes(16));
+        $request->session()->put('guest_chat_key', $newGk);
+        return $newGk;
     }
 
     private function cleanMessageForDatabase(?string $message): string
@@ -94,6 +96,8 @@ class ChatController extends Controller
             return response()->json(['ok' => false, 'error' => 'Invalid chat mode.'], 422);
         }
 
+        $userId = $request->session()->get('user_id');
+
         if ($mode === 'agent') {
             ChatBotState::updateOrCreate(
                 ['chat_key' => $chatKey],
@@ -101,10 +105,10 @@ class ChatController extends Controller
             );
             LiveChatMessage::create([
                 'chat_key' => $chatKey,
-                'user_id' => null,
+                'user_id' => $userId,
                 'customer_name' => 'System',
                 'sender' => 'admin',
-                'message' => 'You are now connected to a live agent. The AI assistant has been paused. An agent will be with you shortly. You can switch back to the assistant at any time using the mode controls.',
+                'message' => 'You are now connected to a live support agent. The AI assistant has been paused. An agent will be with you shortly. You can switch back to the assistant at any time using the mode controls.',
             ]);
         } else {
             ChatBotState::updateOrCreate(
@@ -113,7 +117,7 @@ class ChatController extends Controller
             );
             LiveChatMessage::create([
                 'chat_key' => $chatKey,
-                'user_id' => null,
+                'user_id' => $userId,
                 'customer_name' => 'Luntiang H.A.P.A.G. Assistant',
                 'sender' => 'admin',
                 'message' => ChatbotEngine::greeting() . "\n\nI'm back! Assistant mode restored with full conversation context maintained. How can I help?",

@@ -23,6 +23,11 @@ class AuthController extends Controller
         }
 
         $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
+        if ($isEmail) {
+            if (\App\Models\Admin::whereRaw('LOWER(email) = ?', [strtolower(trim($loginInput))])->exists() || strtolower(trim($loginInput)) === 'admin@luntianghapag.com') {
+                return back()->with('error', 'Admin accounts must sign in through the Admin Portal.')->withInput();
+            }
+        }
         $user = $isEmail ? User::where('email', $loginInput)->first() : User::where('phone', $loginInput)->first();
 
         if ($user && Hash::check($password, $user->password)) {

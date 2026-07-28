@@ -59,7 +59,7 @@
             <a href="{{ route('products.show', $pslug) }}" class="block"><p class="text-sm font-bold hover:text-[#17611f] transition-colors line-clamp-1">{{ $pname }}</p></a>
             <p class="text-xs text-[#5a7a5c] truncate">{{ $pvariety }}</p>
             <div class="flex items-center justify-between mt-2"><p class="font-black text-[#17611f]">₱{{ number_format($pprice, 2) }}</p></div>
-            <button onclick="addToCart({{ $pid }})" class="block w-full mt-2 text-center text-xs font-bold py-1.5 rounded-lg bg-[#17611f] text-white hover:bg-[#14521a] transition-colors cursor-pointer">🛒 Add to Cart</button>
+            <button onclick="addToCart({{ $pid }}, 1, this)" class="block w-full mt-2 text-center text-xs font-bold py-1.5 rounded-lg bg-[#17611f] text-white hover:bg-[#14521a] transition-all duration-200 active:scale-[0.98] cursor-pointer shadow-sm">🛒 Add to Cart</button>
           </div>
         </article>
       @endforeach
@@ -148,7 +148,46 @@
 <script>
 function showToast(msg,ok){let t=document.getElementById('cartToast');if(!t){t=document.createElement('div');t.id='cartToast';t.className='fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 translate-x-[120%] opacity-0 pointer-events-none';document.body.appendChild(t);}t.textContent=msg;t.className='fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl shadow-lg text-sm font-bold transition-all duration-300 '+(ok?'bg-[#e8f5e9] text-[#17611f] border border-[#c8e6c9]':'bg-red-50 text-red-700 border border-red-100');t.classList.remove('translate-x-[120%]','opacity-0');t.classList.add('translate-x-0','opacity-100');clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.add('translate-x-[120%]','opacity-0');},3000);}
 function updateCartCount(count){let b=document.querySelector('a[href*="cart"] span');if(count>0){if(b){b.textContent=count}else{let a=document.querySelector('a[href*="cart"]');if(a){let s=document.createElement('span');s.className='absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#17611f] text-white text-[10px] font-bold flex items-center justify-center';s.textContent=count;a.appendChild(s)}}}else{if(b)b.remove()}}
-async function addToCart(id,qty){qty=qty||1;try{let r=await fetch('{{ route('cart.ajax') }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({action:'add',id:id,qty:qty})});let d=await r.json();showToast(d.message,d.success);if(d.success)updateCartCount(d.count)}catch(e){showToast('Network error',false)}}
+async function addToCart(id,qty,btn){
+  qty=qty||1;
+  var origText = btn ? btn.innerHTML : '';
+  if(btn){
+    btn.disabled = true;
+    btn.classList.add('scale-[0.96]', 'bg-[#14521a]');
+    btn.innerHTML = '🛒 Adding...';
+  }
+  try{
+    let r=await fetch('{{ route('cart.ajax') }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({action:'add',id:id,qty:qty})});
+    let d=await r.json();
+    showToast(d.message,d.success);
+    if(d.success){
+      updateCartCount(d.count);
+      if(btn){
+        btn.innerHTML = '✓ Added!';
+        btn.classList.remove('bg-[#14521a]');
+        btn.classList.add('bg-green-600');
+        setTimeout(()=>{
+          btn.innerHTML = origText;
+          btn.classList.remove('bg-green-600', 'scale-[0.96]');
+          btn.disabled = false;
+        }, 1200);
+      }
+    } else {
+      if(btn){
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        btn.classList.remove('scale-[0.96]');
+      }
+    }
+  }catch(e){
+    showToast('Network error',false);
+    if(btn){
+      btn.innerHTML = origText;
+      btn.disabled = false;
+      btn.classList.remove('scale-[0.96]');
+    }
+  }
+}
 
 // Coupon claim – vanish after claimed with animation
 document.addEventListener('DOMContentLoaded', ()=>{

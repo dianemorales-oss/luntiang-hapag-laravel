@@ -230,7 +230,14 @@ class CheckoutController extends Controller
                 // Five-cup bundle products deduct 5 plants/cups per purchased bundle.
                 // If a bundle points to a source product, deduct from both the bundle row
                 // and the source product row so admin inventory stays in sync.
-                $stockMultiplier = max(1, (int)($ci['product']->stock_multiplier ?? 1));
+                $multiplier = (int)($ci['product']->stock_multiplier ?? 1);
+                if ($multiplier <= 1) {
+                    $text = ($ci['product']->name ?? '') . ' ' . ($ci['product']->description ?? '') . ' ' . ($ci['product']->unit ?? '');
+                    if (preg_match('/\b(\d+)\s*-?\s*cups?\b/i', $text, $matches)) {
+                        $multiplier = max(1, (int)$matches[1]);
+                    }
+                }
+                $stockMultiplier = max(1, $multiplier);
                 $stockToDeduct = $ci['qty'] * $stockMultiplier;
                 $stockTargets = [$ci['product']];
 
