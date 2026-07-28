@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>@yield('title', 'Luntiang H.A.P.A.G. | Fresh Hydroponic Harvest-on-Demand Lettuce')</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  @include('partials.offline-assets')
   <link rel="stylesheet" href="{{ asset('assets/design-system.css') }}">
   <style>
     body { font-family: 'Nunito', sans-serif; background: #f4faf5; }
