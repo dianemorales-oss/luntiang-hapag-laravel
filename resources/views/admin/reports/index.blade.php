@@ -327,7 +327,7 @@ function renderFocus(){
 }
 
 function renderAll(){
-  const src=getSource();
+  const src=getSrc();
   cChart('allRevenue',{ type:'line', data:{ labels: src.map(r=> r.label), datasets:[{ label:'Revenue (₱)', data: src.map(r=> r.rev), borderColor: primary, backgroundColor:'rgba(13,51,17,0.1)', fill:true, tension:0.4 }, { label:'Orders', data: src.map(r=> r.cnt), borderColor: blue, backgroundColor:'rgba(25,118,210,0.12)', fill:false, tension:0.35, borderDash:[6,6] }] }, options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, plugins:{ legend:{ display:true, position:'top', labels:{ boxWidth:10, font:{ size:11 } } }, tooltip:{ backgroundColor:'rgba(13,51,17,0.9)' } }, scales:{ x:{ ticks:{ display:false } }, y:{ beginAtZero:true } } } });
   cChart('miniOrders',{ type:'line', data:{ labels: src.map(r=> r.label), datasets:[{ label:'Orders', data: src.map(r=> r.cnt), borderColor: primary, backgroundColor:'rgba(13,51,17,0.08)', fill:true, tension:0.38 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ display:false } }, y:{ beginAtZero:true } } } });
   cChart('miniCustomer',{ type:'line', data:{ labels: customerGrowth.slice(-(currentRange==='7'?7:30)).map(r=> r.label), datasets:[{ label:'New', data: customerGrowth.slice(-(currentRange==='7'?7:30)).map(r=> r.cnt), borderColor:'#7b1fa2', backgroundColor:'rgba(123,31,162,0.12)', fill:true, tension:0.38 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ display:false } }, y:{ beginAtZero:true } } } });
